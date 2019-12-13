@@ -1,0 +1,71 @@
+<form id="thisForm">
+    <input type="hidden" name="Id" id="Id" value="{{.m.Id}}">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>字段类型</label>
+                <select name="FieldType" id="FieldType" class="form-control bs-select">                   
+                    <option value="0">单行文本</option>
+                    <option value="1">多行文本</option>
+                    <option value="2">单选</option>
+                    <option value="3">多选</option>
+                    <option value="4">日期</option>
+                    <option value="5">数字</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6" id="FieldTypeValueOptions">
+            <div class="form-group">
+                <label>选项类型</label>
+                <textarea name="FieldTypeValue" id="FieldTypeValue" class="form-control" cols="30" rows="5" placeholder="每行一个选项"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>字段名称</label>
+                <input type="text" name="FieldName" class="form-control" placeholder="请输入要显示的名称" value="{{.m.FieldName}}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>列表显示</label>
+                <select name="ListShow" id="ListShow" class="form-control bs-select">                   
+                    <option value="true">启用</option>
+                    <option value="false">禁用</option>
+                </select>
+            </div>
+        </div>       
+    </div>    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>添加显示</label>
+                <select name="AddShow" id="AddShow" class="form-control bs-select">                   
+                    <option value="true">启用</option>
+                    <option value="false">禁用</option>
+                </select>
+            </div>
+        </div> 
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>查询显示</label>
+                <select name="QueryShow" id="QueryShow" class="form-control bs-select">                   
+                    <option value="true">启用</option>
+                    <option value="false">禁用</option>
+                </select>
+            </div>
+        </div>     
+    </div>
+    <div class="row" id="UserCompanyRow">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>所属公司</label>
+                <select name="UserCompanyId" id="UserCompany" class="form-control">
+                </select>
+            </div>
+        </div> 
+    </div>  
+</form>
+</div>

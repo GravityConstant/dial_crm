@@ -1,0 +1,697 @@
+<!-- 验证插件 -->
+<script src="/static/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/static/plugins/jquery-validation/localization/messages_zh.min.js"></script>
+<!-- 针对当前主题进行简单封装，精简代码 -->
+<script src="/static/sdtheme/scripts/sdvalidate.js"></script>
+<script src="/static/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script src="/static/plugins/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+<!-- 表格插件 -->
+<script src="/static/plugins/bootstrap-table/bootstrap-table.js" type="text/javascript"></script>
+<script src="/static/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js" type="text/javascript"></script>
+<script src="/static/plugins/bootstrap-table/cookie/bootstrap-table-cookie.js"></script>
+<script>
+	var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    var $thisForm = $('#thisForm');
+    var $dataGrid = $('#dataGrid');
+    // 自定义的column1到column16的字段信息
+    var colsInfo = [];
+    $(function () { 
+        pageInit(); 
+    })
+    function pageInit(){
+        // 自定义字段加载
+        selfDefineColumnInit();
+        // 添加服务记录
+        // userServerHistoryInit();
+        // 添加服务记录show
+        userServerHistoryShow();
+        //初始化表格
+        dataGridInit();
+        //验证
+        validateInfo();
+    }
+    // 自定义字段加载
+    function selfDefineColumnInit() {
+        ColumnInitFilter("name")
+        ColumnInitFilter("mobile_phone")
+        ColumnInitFilter("contact_phone")
+        ColumnInitFilter("comment")
+        ColumnInitFilter("address")
+        ColumnInitFilter("dial_state")
+        ColumnInitFilter("state")
+        ColumnInitFilter("feature")
+        ColumnInitFilter("complaint")
+        ColumnInitFilter("clue_from")
+        ColumnInitFilter("email")
+        ColumnInitFilter("column1")
+        ColumnInitFilter("column2")
+        ColumnInitFilter("column3")
+        ColumnInitFilter("column4")
+        ColumnInitFilter("column5")
+        ColumnInitFilter("column6")
+        ColumnInitFilter("column7")
+        ColumnInitFilter("column8")
+        ColumnInitFilter("column9")
+        ColumnInitFilter("column10")
+        ColumnInitFilter("column11")
+        ColumnInitFilter("column12")
+        ColumnInitFilter("column13")
+        ColumnInitFilter("column14")
+        ColumnInitFilter("column15")
+        ColumnInitFilter("column16")
+    }
+    // 判断要初始化的列
+    function ColumnInitFilter(col) {
+        var colInfo = GetColumnInfo(col)
+        if (colInfo.attr.FieldName.length > 0) {
+            ColumnInitProcess(colInfo.attr, colInfo.val)
+            colsInfo.push(colInfo)
+        }
+    }
+    // 获得列属性
+    function GetColumnInfo(col) {
+        // user client表的值
+        var val = '';
+        // 对应的user client field的值
+        var attr = {};
+        switch (col) {
+            case "name":
+                attr.AddShow = '{{.ma.Name.AddShow}}'
+                attr.FieldType = '{{.ma.Name.FieldType}}'
+                attr.FieldName = '{{.ma.Name.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Name.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Name.Required}}')
+                attr.FieldTypeValue = '{{.ma.Name.FieldTypeValue}}'
+                val = '{{.m.Name}}'
+                break;
+            case "mobile_phone":
+                attr.AddShow = '{{.ma.MobilePhone.AddShow}}'
+                attr.FieldType = '{{.ma.MobilePhone.FieldType}}'
+                attr.FieldName = '{{.ma.MobilePhone.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.MobilePhone.ColumnName}}')
+                attr.Required = parseInt('{{.ma.MobilePhone.Required}}')
+                attr.FieldTypeValue = '{{.ma.MobilePhone.FieldTypeValue}}'
+                val = '{{.m.MobilePhone}}'
+                break;
+            case "contact_phone":
+                attr.AddShow = '{{.ma.ContactPhone.AddShow}}'
+                attr.FieldType = '{{.ma.ContactPhone.FieldType}}'
+                attr.FieldName = '{{.ma.ContactPhone.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.ContactPhone.ColumnName}}')
+                attr.Required = parseInt('{{.ma.ContactPhone.Required}}')
+                attr.FieldTypeValue = '{{.ma.ContactPhone.FieldTypeValue}}'
+                val = '{{.m.ContactPhone}}'
+                break;
+            case "comment":
+                attr.AddShow = '{{.ma.Comment.AddShow}}'
+                attr.FieldType = '{{.ma.Comment.FieldType}}'
+                attr.FieldName = '{{.ma.Comment.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Comment.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Comment.Required}}')
+                attr.FieldTypeValue = '{{.ma.Comment.FieldTypeValue}}'
+                val = '{{.m.Comment}}'
+                break;
+            case "address":
+                attr.AddShow = '{{.ma.Address.AddShow}}'
+                attr.FieldType = '{{.ma.Address.FieldType}}'
+                attr.FieldName = '{{.ma.Address.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Address.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Address.Required}}')
+                attr.FieldTypeValue = '{{.ma.Address.FieldTypeValue}}'
+                val = '{{.m.Address}}'
+                break;
+            case "dial_state":
+                attr.AddShow = '{{.ma.DialState.AddShow}}'
+                attr.FieldType = '{{.ma.DialState.FieldType}}'
+                attr.FieldName = '{{.ma.DialState.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.DialState.ColumnName}}')
+                attr.Required = parseInt('{{.ma.DialState.Required}}')
+                attr.FieldTypeValue = '{{.ma.DialState.FieldTypeValue}}'
+                val = '{{.m.DialState}}'
+                break;
+            case "state":
+                attr.AddShow = '{{.ma.State.AddShow}}'
+                attr.FieldType = '{{.ma.State.FieldType}}'
+                attr.FieldName = '{{.ma.State.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.State.ColumnName}}')
+                attr.Required = parseInt('{{.ma.State.Required}}')
+                attr.FieldTypeValue = '{{.ma.State.FieldTypeValue}}'
+                val = '{{.m.State}}'
+                break;
+            case "feature":
+                attr.AddShow = '{{.ma.Feature.AddShow}}'
+                attr.FieldType = '{{.ma.Feature.FieldType}}'
+                attr.FieldName = '{{.ma.Feature.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Feature.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Feature.Required}}')
+                attr.FieldTypeValue = '{{.ma.Feature.FieldTypeValue}}'
+                val = '{{.m.Feature}}'
+                break;
+            case "complaint":
+                attr.AddShow = '{{.ma.Complaint.AddShow}}'
+                attr.FieldType = '{{.ma.Complaint.FieldType}}'
+                attr.FieldName = '{{.ma.Complaint.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Complaint.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Complaint.Required}}')
+                attr.FieldTypeValue = '{{.ma.Complaint.FieldTypeValue}}'
+                val = '{{.m.Complaint}}'
+                break;
+            case "clue_from":
+                attr.AddShow = '{{.ma.ClueFrom.AddShow}}'
+                attr.FieldType = '{{.ma.ClueFrom.FieldType}}'
+                attr.FieldName = '{{.ma.ClueFrom.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.ClueFrom.ColumnName}}')
+                attr.Required = parseInt('{{.ma.ClueFrom.Required}}')
+                attr.FieldTypeValue = '{{.ma.ClueFrom.FieldTypeValue}}'
+                val = '{{.m.ClueFrom}}'
+                break;
+            case "email":
+                attr.AddShow = '{{.ma.Email.AddShow}}'
+                attr.FieldType = '{{.ma.Email.FieldType}}'
+                attr.FieldName = '{{.ma.Email.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Email.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Email.Required}}')
+                attr.FieldTypeValue = '{{.ma.Email.FieldTypeValue}}'
+                val = '{{.m.Email}}'
+                break;
+            case "column1":
+                attr.AddShow = '{{.ma.Column1.AddShow}}'
+                attr.FieldType = '{{.ma.Column1.FieldType}}'
+                attr.FieldName = '{{.ma.Column1.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column1.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column1.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column1.FieldTypeValue}}'
+                val = '{{.m.Column1}}'
+                break;
+            case "column2":
+                attr.AddShow = '{{.ma.Column2.AddShow}}'
+                attr.FieldType = '{{.ma.Column2.FieldType}}'
+                attr.FieldName = '{{.ma.Column2.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column2.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column2.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column2.FieldTypeValue}}'
+                val = '{{.m.Column2}}'
+                break;
+            case "column3":
+                attr.AddShow = '{{.ma.Column3.AddShow}}'
+                attr.FieldType = '{{.ma.Column3.FieldType}}'
+                attr.FieldName = '{{.ma.Column3.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column3.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column3.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column3.FieldTypeValue}}'
+                val = '{{.m.Column3}}'
+                break;
+            case "column4":
+                attr.AddShow = '{{.ma.Column4.AddShow}}'
+                attr.FieldType = '{{.ma.Column4.FieldType}}'
+                attr.FieldName = '{{.ma.Column4.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column4.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column4.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column4.FieldTypeValue}}'
+                val = '{{.m.Column4}}'
+                break;
+            case "column5":
+                attr.AddShow = '{{.ma.Column5.AddShow}}'
+                attr.FieldType = '{{.ma.Column5.FieldType}}'
+                attr.FieldName = '{{.ma.Column5.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column5.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column5.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column5.FieldTypeValue}}'
+                val = '{{.m.Column5}}'
+                break;
+            case "column6":
+                attr.AddShow = '{{.ma.Column6.AddShow}}'
+                attr.FieldType = '{{.ma.Column6.FieldType}}'
+                attr.FieldName = '{{.ma.Column6.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column6.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column6.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column6.FieldTypeValue}}'
+                val = '{{.m.Column6}}'
+                break;
+            case "column7":
+                attr.AddShow = '{{.ma.Column7.AddShow}}'
+                attr.FieldType = '{{.ma.Column7.FieldType}}'
+                attr.FieldName = '{{.ma.Column7.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column7.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column7.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column7.FieldTypeValue}}'
+                val = '{{.m.Column7}}'
+                break;
+            case "column8":
+                attr.AddShow = '{{.ma.Column8.AddShow}}'
+                attr.FieldType = '{{.ma.Column8.FieldType}}'
+                attr.FieldName = '{{.ma.Column8.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column8.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column8.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column8.FieldTypeValue}}'
+                val = '{{.m.Column8}}'
+                break;
+            case "column9":
+                attr.AddShow = '{{.ma.Column9.AddShow}}'
+                attr.FieldType = '{{.ma.Column9.FieldType}}'
+                attr.FieldName = '{{.ma.Column9.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column9.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column9.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column9.FieldTypeValue}}'
+                val = '{{.m.Column9}}'
+                break;
+            case "column10":
+                attr.AddShow = '{{.ma.Column10.AddShow}}'
+                attr.FieldType = '{{.ma.Column10.FieldType}}'
+                attr.FieldName = '{{.ma.Column10.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column10.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column10.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column10.FieldTypeValue}}'
+                val = '{{.m.Column10}}'
+                break;
+            case "column11":
+                attr.AddShow = '{{.ma.Column11.AddShow}}'
+                attr.FieldType = '{{.ma.Column11.FieldType}}'
+                attr.FieldName = '{{.ma.Column11.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column11.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column11.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column11.FieldTypeValue}}'
+                val = '{{.m.Column11}}'
+                break;
+            case "column12":
+                attr.AddShow = '{{.ma.Column12.AddShow}}'
+                attr.FieldType = '{{.ma.Column12.FieldType}}'
+                attr.FieldName = '{{.ma.Column12.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column12.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column12.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column12.FieldTypeValue}}'
+                val = '{{.m.Column12}}'
+                break;
+            case "column13":
+                attr.AddShow = '{{.ma.Column13.AddShow}}'
+                attr.FieldType = '{{.ma.Column13.FieldType}}'
+                attr.FieldName = '{{.ma.Column13.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column13.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column13.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column13.FieldTypeValue}}'
+                val = '{{.m.Column13}}'
+                break;
+            case "column14":
+                attr.AddShow = '{{.ma.Column14.AddShow}}'
+                attr.FieldType = '{{.ma.Column14.FieldType}}'
+                attr.FieldName = '{{.ma.Column14.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column14.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column14.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column14.FieldTypeValue}}'
+                val = '{{.m.Column14}}'
+                break;
+            case "column15":
+                attr.AddShow = '{{.ma.Column15.AddShow}}'
+                attr.FieldType = '{{.ma.Column15.FieldType}}'
+                attr.FieldName = '{{.ma.Column15.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column15.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column15.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column15.FieldTypeValue}}'
+                val = '{{.m.Column15}}'
+                break;
+            case "column16":
+                attr.AddShow = '{{.ma.Column16.AddShow}}'
+                attr.FieldType = '{{.ma.Column16.FieldType}}'
+                attr.FieldName = '{{.ma.Column16.FieldName}}'
+                attr.ColumnName = CamelString('{{.ma.Column16.ColumnName}}')
+                attr.Required = parseInt('{{.ma.Column16.Required}}')
+                attr.FieldTypeValue = '{{.ma.Column16.FieldTypeValue}}'
+                val = '{{.m.Column16}}'
+                break;
+        }
+        return {'attr': attr, 'val': val}
+    }
+    // 执行列初始化任务
+    function ColumnInitProcess(attr, val) {
+        var inputTmpl = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">邮箱</label>\
+            <div class="col-sm-8">\
+                <input type="text" name="Email" class="form-control">\
+            </div>\
+        </div></div>';
+        var input = '';
+        var textareaTmpl = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">邮箱</label>\
+            <div class="col-sm-8">\
+                <textarea name="Comment" class="form-control" cols="30" rows="5"></textarea>\
+            </div>\
+        </div></div>';
+        var textarea = '';
+        var radioTmpl = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">邮箱</label>\
+            <div class="col-sm-8">\
+                <select name="State" class="form-control bs-select">\
+                </select>\
+            </div>\
+        </div></div>';
+        var radio = '';
+        var html = [];
+        var $select = '';
+        var checkboxTmpl = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">邮箱</label>\
+            <div class="col-sm-8">\
+                <select name="State" class="form-control" multiple>\
+                </select>\
+            </div>\
+        </div></div>';
+        var checkbox = '';
+        var datetimeTmpl = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">邮箱</label>\
+            <div class="col-sm-8">\
+                <div class="input-group">\
+                <input type="text" class="form-control">\
+                    <div class="input-group-addon">\
+                        <i class="fa fa-calendar"></i>\
+                    </div>\
+                </div>\
+            </div>\
+        </div></div>';
+        var datetime = '';
+        var $datepicker = '';
+        if (attr.AddShow == 'true') {
+            switch (attr.FieldType) {
+                case '0':
+                case '5':
+                    input = $(inputTmpl)
+                    if (attr.Required == 0) {
+                        input.find('label').text(attr.FieldName)
+                    } else {
+                        input.find('label').text(attr.FieldName)
+                        input.find('label').append('<span class="text-warning">&nbsp;*</span>')
+                    }
+                    input.find('input').attr('name', attr.ColumnName)
+                    input.find('input').attr('value', val)
+                    if (attr.ColumnName == 'MobilePhone' && val.length > 0) {
+                        input.find('input').attr('readonly', true)
+                    }
+                    if (attr.FieldType == '5') {
+                        input.find('input').attr('placeholder', '数字')
+                    } else {
+                        input.find('input').attr('placeholder', '单行文本')
+                    }
+                    $thisForm.append(input)
+                    break;
+                case '1':
+                    textarea = $(textareaTmpl)
+                    if (attr.Required == 0) {
+                        textarea.find('label').text(attr.FieldName)
+                    } else {
+                        textarea.find('label').text(attr.FieldName)
+                        textarea.find('label').append('<span class="text-warning">&nbsp;*</span>')
+                    }
+                    textarea.find('textarea').attr('name', attr.ColumnName)
+                    textarea.find('textarea').attr('placeholder', '多行文本')
+                    textarea.find('textarea').text(val)
+                    $thisForm.append(textarea)
+                    break;
+                case '2':
+                    radio = $(radioTmpl)
+                    if (attr.Required == 0) {
+                        radio.find('label').text(attr.FieldName)
+                    } else {
+                        radio.find('label').text(attr.FieldName)
+                        radio.find('label').append('<span class="text-warning">&nbsp;*</span>')
+                    }
+                    $select = radio.find('select')
+                    $select.attr('name', attr.ColumnName)
+                    $select.html('')
+                    $(attr.FieldTypeValue.split(',')).each(function(key, val) {
+                        if (attr.ColumnName == "State" || attr.ColumnName == "ClueFrom") {
+                            html.push('<option value="' + (++key) + '">' + val + '</option>')
+                        } else {
+                            html.push('<option value="' + val + '">' + val + '</option>')
+                        }
+                    })
+                    $select.html(html.join(''))
+                    $select.selectpicker()
+                    $select.selectpicker('val', val)
+                    $thisForm.append(radio)
+                    break;
+                case '3':
+                    checkbox = $(checkboxTmpl)
+                    if (attr.Required == 0) {
+                        checkbox.find('label').text(attr.FieldName)
+                    } else {
+                        checkbox.find('label').text(attr.FieldName)
+                        checkbox.find('label').append('<span class="text-warning">&nbsp;*</span>')
+                    }
+                    $select = checkbox.find('select')
+                    $select.attr('name', attr.ColumnName)
+                    $select.html('')
+                    $(attr.FieldTypeValue.split(',')).each(function(key, val) {
+                        html.push('<option value="' + val + '">' + val + '</option>')
+                    })
+                    $select.html(html.join(''))
+                    $select.selectpicker()
+                    $select.selectpicker('val', val.split(','))
+                    $thisForm.append(checkbox)
+                    break;
+                case '4':
+                    datetime = $(datetimeTmpl)
+                    if (attr.Required == 0) {
+                        datetime.find('label').text(attr.FieldName)
+                    } else {
+                        datetime.find('label').text(attr.FieldName)
+                        datetime.find('label').append('<span class="text-warning">&nbsp;*</span>')
+                    }
+                    $datepicker = datetime.find('input')
+                    $datepicker.attr('name', attr.ColumnName)
+                    $datepicker.attr('autocomplete', 'off')
+                    $datepicker.attr('placeholder', '日期')
+                    $datepicker.datetimepicker({
+                        autoclose: true,
+                        format: 'yyyy-mm-dd hh:ii:ss',
+                        language: 'zh-CN',
+                    })
+                    if (val.length > 0) {
+                        $datepicker.datetimepicker('update', val)
+                    }
+                    $thisForm.append(datetime)
+                    break;
+            }
+        }
+    }
+
+    // 服务记录展示
+    function userServerHistoryShow() {
+        $('#home-tab').tab('show');
+    }
+    // 服务记录表格初始化
+    function dataGridInit() {
+        $dataGrid.bootstrapTable({
+            url: '{{ urlfor "UserServerHistoryController.RecordListDataGrid"}}',
+            method: 'post',
+            sidePagination: 'server', //服务器端用 server
+            idField: 'Id',
+            queryParamsType: 'limit',
+            queryParams: function (params) {
+                //params的自带参数类型由queryParamsType决定
+                params.UserClientId = parseInt('{{.m.Id}}');          
+                return params;
+            },
+            pagination: true,
+            showRefresh: true,
+            showColumns: true,
+            toolbar: '#toolbar',
+            pageSize: 10,
+            pageList: [5, 10, 20, 100, 200],
+            paginationShowPageGo: true,//20190628 lht 扩展input跳转             
+            cookie: true,
+            classes: 'table table-bordered table-hover',
+            undefinedText: '',
+            sortName: 'Id',
+            sortOrder: 'desc',
+            rowAttributes: function (row, index) {
+                return {'data-pk': row.Id}
+            },
+            columns: [{
+                field: 'state',
+                checkbox: true,
+                radio: false,
+            }, {
+                field: 'Id',
+                title: 'ID',
+                width: '90px',
+                align: 'center',
+            },  {
+                field: 'Created',
+                title: '记录时间',
+                align: 'center',
+                formatter: function(value, row, index) {
+                    return getUTCTimeWithFormat(value, 'yyyy-MM-dd hh:mm:ss')
+                }
+            }, {
+                field: 'BackendUserName',
+                title: '记录人',
+                align: 'center',
+            }, {
+                field: 'Context',
+                title: '记录内容',
+                align: 'center',
+            }],
+            onLoadSuccess: function (data) {                
+            },            
+            onCheckAll: function (rows) {
+              $(".table-btn-check-enable").prop('disabled', false);
+            },
+            onCheck: function (rows) {
+              $(".table-btn-check-enable").prop('disabled', false);
+            },
+            onUncheck: function (rows) {
+              $(".table-btn-check-enable").prop('disabled', !$ctrl.bootstrapTable("getSelections").length)
+            },
+            onUncheckAll: function () {
+              $(".table-btn-check-enable").prop('disabled', !$ctrl.bootstrapTable("getSelections").length)
+            },
+            onLoadError: function (status) {
+                layer.alert('获取数据失败,错误代码：' + status);
+            }
+        });
+    }
+    // 表单验证
+    function validateColumns() {
+        var errMsg = '';
+        $(colsInfo).each(function(k, e) {
+            var element = '';
+            var val = '';
+            // 0:没有错误，1：必填，2：必须为日期，3：必须为数字
+            var err = 0;
+            switch (e.attr.FieldType) {
+                case '0':
+                case '1':
+                    element = $thisForm.find('input[name="' + e.attr.ColumnName + '"]')
+                    val = element.val()
+                    if (e.attr.Required == 1 && (!val || val.length == 0)) {
+                        err = 1
+                    }
+                    break;
+                case '2':
+                case '3':
+                    element = $thisForm.find('select[name="' + e.attr.ColumnName + '"]')
+                    val = element.selectpicker('val')
+                    if (e.attr.Required == 1 && (!val || val.length == 0)) {
+                        err = 1
+                    }
+                    break;
+                case '4':
+                    element = $thisForm.find('input[name="' + e.attr.ColumnName + '"]')
+                    val = element.val()
+                    if (e.attr.Required == 1 && (!val || val.length == 0)) {
+                        err = 1
+                    } else {
+                        if (val && val.length > 0) {
+                            var dt = new Date(val)
+                            if (dt == 'Invalid Date') {
+                                err = 2
+                            }
+                        }
+                    }
+                    break;
+                case '5':
+                    element = $thisForm.find('input[name="' + e.attr.ColumnName + '"]')
+                    val = element.val()
+                    if (e.attr.Required == 1 && (!val || val.length == 0)) {
+                        err = 1
+                    } else {
+                        if (val && val.length > 0) {
+                            var i = parseInt(val)
+                            console.log(i)
+                            if (!i) {
+                                err = 3
+                            }
+                        }
+                    }
+                    break;
+            }
+            if (err) {
+                element.css('border-color', 'red')
+                if (err === 1) {
+                    errMsg += e.attr.FieldName + '为必填字段。'
+                    if (element.siblings('small').length === 0) {
+                        element.after('<small style="color:red; ">这是必填字段</small>')
+                    } else {
+                        element.siblings('small').text('这是必填字段')
+                    }
+                } else if (err === 2) {
+                    errMsg += e.attr.FieldName + '为日期类型。'
+                    if (element.siblings('small').length === 0) {
+                        element.after('<small style="color:red; ">必填是日期类型</small>')
+                    } else {
+                        element.siblings('small').text('必填是日期类型')
+                    }
+                } else if (err === 3) {
+                    errMsg += e.attr.FieldName + '为数字类型。'
+                    if (element.siblings('small').length === 0) {
+                        element.after('<small style="color:red; ">必填是数字类型</small>')
+                    } else {
+                        element.siblings('small').text('必填是数字类型')
+                    }
+                } 
+            } else {
+                element.css('border-color', '#D2D6DE')
+                element.siblings('small').remove()
+            }
+        })
+        return errMsg
+    }
+    // 添加公司服务记录
+    function userServerHistoryInit() {
+        $thisForm.append('<div class="col-md-12"><hr></div>');
+        var record = '<div class="col-md-6"><div class="form-group">\
+            <label class="col-sm-2 control-label">服务记录</label>\
+            <div class="col-sm-8">\
+                <textarea class="form-control" cols="30" rows="5" name="Context"></textarea>\
+            </div>\
+        </div></div>';
+        $thisForm.append(record);
+    }
+    //表单验证及AJAX提交
+    function validateInfo() {
+        // var $thisForm = $('#thisForm');
+        $thisForm.sdvalidate({
+            rules: {
+            },
+
+            submitHandler: function (form) {
+                // 验证
+                var errMsg = validateColumns();
+                if (errMsg.length > 0) {
+                    console.log('error occur: ' + errMsg)
+                    return
+                }
+				var url ='{{ urlfor "UserClientController.Edit"}}'
+                var con = $('#myTabContent').find('textarea[name="ContextShow"]').val();
+                if (con && con.length > 0) {
+                    $thisForm.find('textarea[name="Context"]').val(con)
+                }
+				var data = $thisForm.serialize();
+                console.log(data)
+                // return			
+				$.sdpost(url,data,function(re){
+					if(re.code === 0){
+						parent.layer.msg(re.msg)
+						parent.refresh(re.obj)
+						parent.layer.close(index)
+					}else{
+						parent.layer.alert(re.msg,{icon:2,title:'失败'})
+					}
+				});
+               return false;
+            }
+        });
+    }
+
+    function FormSubmit() {
+        $("#thisForm").submit();		
+    }
+
+    function CamelString(str) {
+        var strArr=str.split('_');
+
+        for (var i=0; i<strArr.length; i++) {
+            strArr[i] = strArr[i].charAt(0).toUpperCase() + strArr[i].substring(1);
+        }
+
+        return strArr.join('');
+    }
+</script>

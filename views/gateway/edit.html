@@ -1,0 +1,35 @@
+<div class="row">
+    <!-- form start -->
+    <form class="form-horizontal" id="thisForm">
+        <input type="hidden" Name="Id" id="Id" value="{{.m.Id}}">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">网关名称</label>
+            <div class="col-sm-7">
+                <input type="text" name="GatewayName" class="form-control" placeholder="名称" value="{{.m.GatewayName}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">网关类型</label>
+            <div class="col-sm-7">
+                <select name="GatewayType" id="GatewayType" class="form-control bs-select">                   
+                    <option value="0">电话线中继</option>
+                    <option value="1">插手机卡中继</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">freeswitch网关名称</label>
+            <div class="col-sm-7">
+                <select name="GatewayUrl" id="GatewayUrlFromFs" class="form-control">
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">所属网关组</label>
+            <div class="col-sm-7">
+                <select name="GatewayGroupIds" id="GatewayGroup" class="form-control">
+                </select>
+            </div>
+        </div>
+    </form>
+</div>

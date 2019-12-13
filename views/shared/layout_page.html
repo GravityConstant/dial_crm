@@ -1,0 +1,236 @@
+<!-- 用于列表页 -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <title>{{.pageTitle}}</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"> 
+    {{template "shared/globalcss.html"}} 
+    {{.headcssjs}}
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+    <div class="wrapper">
+        <!-- Main Header -->
+        <header class="main-header">
+
+            <!-- Logo -->
+            <a href="index2.html" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini"><b>和</b>企</span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg"><b>和企</b>云呼叫</span>
+            </a>
+
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- 首页直接呼叫按钮 -->
+                <div style="float:left; height: 50px">
+                    <ul class="nav navbar-nav" style="margin-top: 8px">
+                        <li>
+                            <input type="text" class="form-control" id="tocallphone" value="">
+                        </li>
+                        <li>
+                            <button class="btn btn-info" type="button" onclick="speedDial()">
+                                <i class="fa fa-phone"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            
+                <!-- Navbar Right Menu -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <!-- User Account Menu -->
+                        <li class="dropdown user user-menu">
+                            <!-- Menu Toggle Button -->
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <!-- The user image in the navbar-->
+                                <img src="{{if .backenduser.Avatar}}{{.backenduser.Avatar}}{{else}}/static/sdtheme/img/no-image.png{{end}}" class="user-image" alt="User Image">
+                                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                                <span class="hidden-xs">{{.backenduser.RealName}}</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- The user image in the menu -->
+                                <li class="user-header">
+                                    <img src="{{if .backenduser.Avatar}}{{.backenduser.Avatar}}{{else}}/static/sdtheme/img/no-image.png{{end}}" class="img-circle" alt="User Image">
+
+                                    <p>
+                                        {{.backenduser.RealName}}                                       
+                                    </p>
+                                </li>
+                                <!-- Menu Body -->
+                                <!--<li class="user-body">
+                                    <div class="row">
+                                        <div class="col-xs-4 text-center">
+                                            <a href="#">Followers</a>
+                                        </div>
+                                        <div class="col-xs-4 text-center">
+                                            <a href="#">Sales</a>
+                                        </div>
+                                        <div class="col-xs-4 text-center">
+                                            <a href="#">Friends</a>
+                                        </div>
+                                    </div>                                   
+                                </li>-->
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="{{urlfor "UserCenterController.Profile" }}" class="btn btn-default btn-flat"> 个人信息</a>
+                                    </div>
+                                    <div class="pull-right">
+                                        <a href="{{urlfor "HomeController.Logout" }}" class="btn btn-default btn-flat"> 退  出</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Control Sidebar Toggle Button data-toggle="control-sidebar"-->
+                        <li>
+                            <a href="#"><i class="fa fa-gears"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+            {{ template "shared/sidebar.html" }}
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            {{.LayoutContent}}
+        </div>
+        <!-- /.content-wrapper -->
+
+        <!-- Main Footer -->
+        <footer class="main-footer">
+            <!-- To the right -->
+            <div class="pull-right hidden-xs">
+                php01@2009400.cn
+            </div>
+            <!-- Default to the left -->
+            <strong>Copyright &copy; <time id="CopyrightYear">2016</time> <a href="#">和企云呼叫系统</a>.</strong>
+        </footer>
+        {{ template "shared/control-sidebar.html" }}
+    </div>
+    <!-- ./wrapper -->
+    {{template "shared/globaljs.html"}}
+    <script>
+        $(function () {
+           //页面左侧菜单初始化
+           rms.pageSidebarInit({
+                slideBarBox:'#pageSidebar',                         //菜单容器
+                url:'{{urlfor "ResourceController.UserMenuTree"}}', //菜单数据地址
+                cur:'{{.activeSidebarUrl}}'             //当前激活的菜单地址
+           });
+        });
+        // 首页快速拨打电话
+        function speedDial() {
+            var url = '{{ urlfor "CalloutController.DirectDial"}}';
+            data = {
+                tocallphone: $.trim($('#tocallphone').val()),
+            }
+            $.sdpost(url, data, function (re) {
+                if (re.code == 0) {
+                    layer.alert(re.msg, {icon: 1, title: '成功'}, function(index) {
+                        isExistedCalledPhone(data.tocallphone)
+                        layer.close(index)
+                    });
+                } else {
+                    layer.alert(re.msg + re.obj, {icon: 2, title: "失败"});
+                }
+            });
+        }
+        // 判断电话是否已经存在
+        function isExistedCalledPhone(tocallphone) {
+            var url = '{{ urlfor "UserClientController.IsExistedCalledPhone"}}';
+            data = {
+                tocallphone: tocallphone,
+            }
+            $.sdpost(url, data, function (re) {
+                if (re.code == 0) {
+                    console.log(re.obj.Id)
+                    EditUserClientFun(re.obj.Id, tocallphone, true,re.obj.State)
+                } else {
+                    layer.alert(re.msg, {icon: 2, title: "失败"});
+                }
+            });
+        }
+        // 编辑用户的客户资料
+        function EditUserClientFun(Id, phone, dialSuccess,State) {
+            var title = '添加客户资料';
+            if (Id > 0) {
+                title = "编辑客户资料"
+            }
+            var url = '{{ urlfor "UserClientController.Edit"}}' + '/' + Id + '/' + phone + '/' + dialSuccess;
+            layer.open({
+                type: 2,
+                title: title,
+                shadeClose: false,
+                shade: 0.2,
+                maxmin: true,
+                shift: 1,
+                area: ['1200px', '95%'],
+                content: url,
+                btn: ['保存', '关闭'],
+                yes: function (index, layero) {
+                    var iframeWin = window[layero.find('iframe')[0]['name']];
+                    iframeWin.FormSubmit();
+                }
+            });
+            // 服务记录合并在一起了
+            // if (Id > 0) {
+            //     AddRecord(Id,State)
+            // }
+        }
+
+        function AddRecord(Id,State) {
+            var title = '添加服务记录';
+            var url = '{{ urlfor "UserServerHistoryController.AddRecord"}}' + '/' + Id+'/'+State;
+            layer.open({
+                type: 2,
+                title: title,
+                closeBtn:0,
+                shadeClose: false,
+                shade: 0.2,
+                maxmin: true,
+                shift: 1,
+                area: ['500px', '400px'],
+                content: url,
+                btn: ['保存'],
+                yes: function (index, layero) {
+                    var iframeWin = window[layero.find('iframe')[0]['name']];
+                    iframeWin.FormSubmit();
+                }
+            });
+        }
+
+        // 无意义，上面的编辑用户客户资料用到这个方法
+        function refresh(obj) {
+
+        }
+        // coright year
+        $('#CopyrightYear').text((new Date()).getFullYear())
+        // 浏览器标签页切换事件
+        document.addEventListener('visibilitychange',function() { //浏览器切换事件
+            if (document.visibilityState == 'hidden') { //状态判断
+                //normal_title=document.title;
+                document.title = '别在其他网站瞎逛游了，快回来~'; 
+            } else {
+                document.title = '{{.pageTitle}}';
+            }
+        });
+    </script>
+    {{.footerjs}}
+</body>
+
+</html>

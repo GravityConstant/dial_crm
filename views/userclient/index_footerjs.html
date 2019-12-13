@@ -1,0 +1,754 @@
+<!-- 表格插件 -->
+<script src="/static/plugins/bootstrap-table/bootstrap-table.js" type="text/javascript"></script>
+<script src="/static/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js" type="text/javascript"></script>
+<script src="/static/plugins/bootstrap-table/cookie/bootstrap-table-cookie.js"></script>
+<script src="/static/plugins/layer-v3.1.0/laydate.js"></script>
+<script src="/static/plugins/ajaxfileupload.js"></script>
+<script>
+    // color picker temp
+    var curSettingColor = '';
+    var isQueryShow = false;
+    // global params
+    var $dataGrid = $('#dataGrid');
+    var $searchForm = $("#searchForm")
+    // 字段信息
+    var fieldInfo = [];
+    // 自定义的user_client datatable字段信息
+    var dataTable = [];
+    // backend_user表的多行记录
+    var dataUsers = [];
+    //高亮显示id
+    var highlightPk = null ;
+    //初始化加载
+    $(function () {
+        // 日期控件
+        laydate.render({
+            elem: '#CreatedStart', //指定元素
+            type: 'datetime'
+        });
+        laydate.render({
+            elem: '#CreatedEnd', //指定元素
+            type: 'datetime'
+        });
+        // 初始化
+        pageInit();
+    });
+
+    //初始化页面
+    function pageInit() {
+        // columns初始化
+        columnsInit();
+        // user下拉框初始化
+        backendUserInit()
+        // 从cookie加载查询条件 
+        // sdtheme.loadSearchText('searchForm');
+        // 初始化表格
+        // dataGridInit();
+        //搜索
+        $("#btnSearch").on("click", function (e) {
+            isQueryShow = true;
+            refreshToFirstPage();
+        });
+        //清除搜索
+        $("#btnClearSearch").on("click", function (e) {
+            isQueryShow = false;
+            $('select', $searchForm).selectpicker('val', '');
+            $('input', $searchForm).val('');
+            refreshToFirstPage();
+        }); 
+        //绑定加载成功的事件，成功后高亮显示当前项
+        $dataGrid.on('load-success.bs.table', function () {
+            if (highlightPk !== null && typeof highlightPk !== 'undefined') {
+                sdtheme.highlight($dataGrid.find('tbody tr[data-pk="' + highlightPk + '"]'));
+            }
+            //高亮显示一次后失效
+            highlightPk = null;
+        });
+        //保持搜索条件面板状态
+        sdtheme.searchPanelStatusInit('searchpanelbtn');
+    };
+
+    //刷新当前页
+    function refresh(pk) {
+        $dataGrid.bootstrapTable('refresh');
+        highlightPk = pk;
+    }
+
+    //刷新并跳转至第一页
+    function refreshToFirstPage() {
+        //表格刷新时，保存查询条件到cookie
+        sdtheme.saveSearchText('searchForm');
+        //刷新并跳转至第1页
+        $dataGrid.bootstrapTable('refresh', { pageNumber: 1 });
+        //同时要更新cookie里保存当前页码
+        $.cookie('dataGrid.bs.table.pageNumber', 1, { expires: 1 });
+    }
+    // columns初始化
+    function columnsInit() {
+        var url = '{{urlfor "UserClientFieldController.DataList"}}';
+        $.sdpost(url,{},function(re){
+            if(re.code === 0){
+                dataTable.push({
+                    field: 'state',
+                    checkbox: true,
+                    radio: false,
+                },{
+                    field: 'Id',
+                    title: 'ID',
+                    width: '90px',
+                    align: 'center',
+                    sortable: true,
+                });
+                fieldInfo = re.obj
+                console.log(fieldInfo)
+                $(re.obj).each(function(i,e){
+                    var col = {
+                        field: CamelString(e.ColumnName),
+                        title: e.FieldName,
+                        align: 'center',
+                    }
+                    switch (e.ColumnName) {
+                        case 'mobile_phone':
+                            col.sortable = true;
+                            col.width = '150px';
+                            col.formatter = function(value, row, index) {
+                                var call = '<a href="javascript:;" onclick="onClickCall(' + row.Id + ',\'' + value + '\',' + row.State + ')" title="点击呼叫"><i class="fa fa-phone"></i>'
+                                var gap = '&nbsp;&nbsp;'
+                                var sms = '<a href="javascript:;" onclick="showMsgModel('+ value +')" title="发送短信"><i class="fa fa-envelope"></i>'
+                                return value + gap + call + gap + sms
+                            }
+                            break;
+                        case 'belong_backend_user_id':
+                            col.formatter = function(value, row, index) {
+                                for (var i=0, l=dataUsers.length; i<l; i++) {
+                                    if (dataUsers[i].Id == value) {
+                                        return dataUsers[i].RealName
+                                    }
+                                }
+                                if (value == 0) {
+                                    return '公共池'
+                                }
+                            }
+                            break;
+                        case 'state':
+                        case 'clue_from':
+                            col.formatter = function(value, row, index) {
+                                var arr = e.FieldTypeValue.split(',')
+                                return arr[value-1]
+                            }
+                            break;
+                        case 'created':
+                        case 'latest_communicated':
+                            col.formatter = function(value, row, index) {
+                                if (value && value.length > 0) {
+                                    var arr = value.split(' ')
+                                    var res = [arr[0], arr[1]];
+                                    var tmp = res.join(' ')
+                                    // 这个只是为插入数据库，因为数据库字段设为timestamp，而数据类型为string
+                                    if (tmp == '2000-01-01 00:00:00') {
+                                        return ''
+                                    } else {
+                                        return tmp
+                                    }
+                                } else {
+                                    return value
+                                }
+                                
+                            }
+                            break;
+                    }
+                    if (e.ListShow == true) {
+                        dataTable.push(col)
+                    }
+                });
+                var operate = {
+                    field: 'operate',
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var ret = [];
+                        if ('{{.canEdit}}' === 'true') {
+                            ret.push('<button class="btn btn-primary btn-xs"  onclick="EditFun(' + row.Id + ')"><i class="fa fa-pencil"></i> 编辑</button>');
+                        }
+                            ret.push('<button class="btn btn-info btn-xs"  onclick="AddRecord(' + row.Id + ',' + row.State + ')"><i class="fa fa-pencil"></i> 新增记录</button>');
+
+                        ret.push('<button class="btn btn-info btn-xs"  onclick="Recordlist(' + row.Id + ')"><i class="fa fa-pencil"></i> 历史记录</button>');
+
+                        return ret.join('');
+                    }
+                } 
+                dataTable.push(operate)
+                // 初始化表格,改为在获取完backend_user初始化
+                // dataGridInit();
+            } else {
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    //bootstrap table data init
+    function dataGridInit() {
+        $dataGrid.bootstrapTable({
+            url: '{{ urlfor "UserClientController.DataGrid"}}',
+            method: 'post',
+            sidePagination: 'server', //服务器端用 server
+            idField: 'Id',
+            queryParamsType: 'limit',
+            queryParams: function (params) {
+                //params的自带参数类型由queryParamsType决定
+                params.NameLike = $('.searchForm input[name="Name"]').val();
+                params.PhoneLike = $('.searchForm input[name="Phone"]').val();
+                params.CreatedStart = $('.searchForm input[name="CreatedStart"]').val();
+                params.CreatedEnd = $('.searchForm input[name="CreatedEnd"]').val();
+                params.BackendUserIds = [];
+                var uids = $('.searchForm select[name="BackendUserIds"]').selectpicker('val');
+                $(uids).each(function(key, val) {
+                    params.BackendUserIds.push(parseInt(val))
+                })
+                params.QueryShow = isQueryShow
+                // console.log(params)
+                return params;
+            },
+            pagination: true,
+            showRefresh: true,
+            showColumns: true,
+            toolbar: '#toolbar',
+            pageSize: 10,
+            pageList: [5, 10, 20, 100, 200],
+            paginationShowPageGo: true,//20170812 lht 扩展select跳转
+            paginationUseBSSelect: true,//20170812 lht 扩展select跳转 启用BoostrapSelect(页面须引用botstrap-select.min.js)
+            cookie: true,
+            classes: 'table table-bordered table-hover',
+            undefinedText: '',
+            sortName: 'Id',
+            sortOrder: 'desc',
+            rowAttributes: function (row, index) {
+                return { 'data-pk': row.Id }
+            },
+            columns: dataTable,
+            onLoadSuccess: function (data) {
+                layer.closeAll('loading');
+                //
+                //CheboxUniform()
+            },
+            onSort: function (name, order) {
+                //alert('name:' + name + " order:" + order);
+            },
+            onPageChange: function () {
+                //layer.load();
+            },
+            onCheckAll: function (rows) {
+                //禁用删除需要勾选才能用的按钮
+                $(".table-btn-check-enable").removeAttr('disabled');
+            },
+            onCheck: function (rows) {
+                //禁用删除需要勾选才能用的按钮
+                $(".table-btn-check-enable").removeAttr('disabled');
+            },
+            onUncheck: function (rows) {
+                //禁用删除需要勾选才能用的按钮
+                if ($("#dataGrid").bootstrapTable("getSelections").length === 0) {
+                    $(".table-btn-check-enable").attr('disabled', 'disabled');
+                }
+            }, onUncheckAll: function () {
+                //禁用删除需要勾选才能用的按钮
+                if ($("#dataGrid").bootstrapTable("getSelections").length === 0) {
+                    $(".table-btn-check-enable").attr('disabled', 'disabled');
+                }
+            },
+            onLoadError: function (status) {
+                layer.alert('获取数据失败,错误代码：' + status);
+            },
+        });
+    } 
+    ///用一个带有title值的span将值包裹起来
+    function formatterWapBySpan(value, row, index) {
+        if (value !== null) {
+            return '<span title="' + value + '">' + value + '</span>';
+        }
+        return "";
+    } 
+
+    function EditFun(Id, phone, dialSuccess) {
+        var title = '添加客户资料';
+        if (Id > 0) {
+            title = "编辑客户资料"
+        }
+        var url = '{{ urlfor "UserClientController.Edit"}}' + '/' + Id + '/' + phone + '/' + dialSuccess;
+        console.log('dialSuccess: ', url)
+        layer.open({
+            type: 2,
+            title: title,
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['1200px', '95%'],
+            content: url,
+            btn: ['保存', '关闭'],
+            yes: function (index, layero) {
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                iframeWin.FormSubmit();
+            }
+        });
+    }
+
+    function AddRecord(Id,State) {
+        var title = '添加服务记录';
+        var url = '{{ urlfor "UserServerHistoryController.AddRecord"}}' + '/' + Id+'/'+State;
+        layer.open({
+            type: 2,
+            title: title,
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['500px', '400px'],
+            content: url,
+            btn: ['保存', '关闭'],
+            yes: function (index, layero) {
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                iframeWin.FormSubmit();
+            }
+        });
+    }
+    function AddRecord2(Id,State) {
+        var title = '添加服务记录';
+        var url = '{{ urlfor "UserServerHistoryController.AddRecord"}}' + '/' + Id+'/'+State;
+        layer.open({
+            type: 2,
+            title: title,
+            closeBtn:0,
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['500px', '400px'],
+            content: url,
+            btn: ['保存'],
+            yes: function (index, layero) {
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                iframeWin.FormSubmit();
+            }
+        });
+    }
+
+    function Recordlist(Id) {
+        var title = '历史服务记录';
+        var url = '{{ urlfor "UserServerHistoryController.RecordList"}}' + '/' + Id;
+        layer.open({
+            type: 2,
+            title: title,
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['1200px', '900px'],
+            content: url,
+            btn: ['保存', '关闭'],
+            yes: function (index, layero) {
+                var iframeWin = window[layero.find('iframe')[0]['name']];
+                iframeWin.FormSubmit();
+            }
+        });
+    }
+
+    function DeleteFun() {
+        var url = '{{ urlfor "UserClientController.Delete"}}';
+
+        var rows = $dataGrid.bootstrapTable("getSelections")
+        if (rows.length === 0) {
+            layer.alert('请选择想要删除的项', {icon: 0, title: '提示'});
+            return;
+        }
+        var ids = [];
+        $(rows).each(function (i, e) {
+            ids.push(e.Id);
+        });
+        layer.confirm('您是否要删除所选的项？', {
+            btn: ['是', '否'], icon: 3, title: '请确认'
+        }, function () {
+            console.log(ids)
+            var dataValues = {ids:ids.join(',')};
+            $.sdpost(url, dataValues, function (re) {
+                if (re.code == 0) {
+                    layer.msg(re.msg, {icon: 1, title: '成功'});
+                    refresh();
+                } else {
+                    layer.alert(re.msg, {icon: 2, title: "失败"});
+                }
+            });
+        });
+    }
+
+    // backendUser下拉框初始化
+    function backendUserInit() {
+        var url = '{{urlfor "BackendUserController.DataList"}}';
+        var $select = $("#BackendUser");
+        $select.html('');
+        $.sdpost(url,{},function(re){
+            if(re.code === 0){               
+                var html=[]
+                html.push('<option value="-1">包含全部下级</option>')
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Id + '">' + e.RealName + '</option>')
+                    dataUsers.push(e)
+                });               
+                $select.html(html.join(''));
+                $select.selectpicker();
+                // console.log(dataUsers)
+                // 初始化表格
+                dataGridInit();
+            } else {
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    // 转移归属人
+    function MoveBelongFun() {
+        var $select = ''
+        var content = '<section class="content container-fluid">\
+        <div class="row">\
+            <form class="form-horizontal" id="thisForm">\
+            <div>\
+                <label class="col-sm-2 control-label">选择坐席</label>\
+                <div class="col-sm-8">\
+                    <select name="BelongBackendUserId" id="BelongBackendUserId" class="form-control">\
+                    </select>\
+                </div>\
+            </div>\
+        </form></div></section>'
+        layer.open({
+            type: 1,
+            title: '转移客户资料',
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['600px', '400px'],
+            content: content,
+            btn: ['保存', '关闭'],
+            success: function(layero, index) {
+                $select = $('#BelongBackendUserId');
+                $select.html('');
+                var html = [];
+                $(dataUsers).each(function(i, e) {
+                    html.push('<option value="' + e.Id + '">' + e.RealName + '</option>')
+                })
+                // html.push('<option value="0">转移到公共池</option>')
+                $select.html(html.join(''));
+                $select.selectpicker();
+            },
+            yes: function (index, layero) {
+                var url = '{{ urlfor "UserClientController.UpdateFieldByIds"}}';
+                var rows = $dataGrid.bootstrapTable("getSelections")
+                if (rows.length === 0) {
+                    layer.alert('请选择想要删除的项', { icon: 0, title: '提示' });
+                    return;
+                }
+                var ids = [];
+                $(rows).each(function (i, e) {
+                    ids.push(e.Id);
+                });
+                layer.confirm('您是否要转移所选的项？', {
+                    btn: ['是', '否'], icon: 3, title: '请确认'
+                }, function () {            
+                    var dataValues = { 
+                        ids: ids.join(','),
+                        fieldName: 'belong_backend_user_id',
+                        fieldValue: $select.selectpicker('val'),
+                    };
+                    // console.log(dataValues)
+                    // return
+                    $.sdpost(url, dataValues, function (re) {
+                        if (re.code === 0) {
+                            layer.msg(re.msg, { icon: 1, title: '成功' });
+                            refresh();
+                            layer.close(index)
+                        } else {
+                            layer.alert(re.msg, { icon: 2, title: "失败" });
+                        }
+                    });
+                });
+            }
+        });
+    }
+    // 导入客户资料
+    function ImportFun() {
+        var content = '<section class="content container-fluid">\
+        <div class="row">\
+            <form class="form-horizontal" id="thisForm">\
+            <div>\
+                <label class="col-sm-3 control-label">本地excel导入</label>\
+                <div class="col-sm-5">\
+                    <input type="file" name="custtemplet" id="custtemplet" class="form-control-file" accept=".xls,.xlsx,.csv">\
+                </div>\
+                <div class="col-sm-4">\
+                    <button type="button" class="btn btn-primary btn-info" onclick="downbutton()">模版下载</button>\
+                </div>\
+            </div>\
+        </form></div></section>'
+        // 弹窗
+        layer.open({
+            type: 1,
+            title: '导入客户资料',
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['600px', '400px'],
+            content: content,
+            btn: ['保存', '关闭'],
+            success: function(layero, index) {
+                console.log('load success')
+            },
+            yes: function (index, layero) {
+                console.log('yes button')
+
+                $.ajaxFileUpload({
+                    url: '{{ urlfor "UserClientController.UploadExcel" }}',
+                    secureuri: false,
+                    fileElementId: 'custtemplet',
+                    dataType: 'json',
+                    data: { type: 1 }, //用来传file其他的值
+                    complete: function () {
+                        console.log($(this))
+                    },
+                    success: function (re, status) {
+                        console.log(re)
+                        if (re.code === 0) {
+                            var msg = re.msg + '<br>'
+                            if (re.obj.err.length > 0) {
+                                msg += 'excel行号为' + re.obj.err + '存在必填项而未填写！<br>'
+                            }
+                            if (re.obj.dup.length > 0) {
+                                 msg += 'excel行号为' + re.obj.dup + '的手机号码和之前的重复了！<br>'
+                            }
+                            layer.alert(msg, {icon: 1, title: '成功'}, function (index) {
+                                refreshToFirstPage();
+                                layer.close(index)
+                            });
+                        } else {
+                            layer.alert(re.msg, {icon: 2, title: '错误'});
+                        }
+                        
+                        layer.close(index)
+                    },
+                    error: function (XHR, status, e) {
+                        sdtheme.alertXHRError(XHR);
+                        layer.close(index)
+                    }
+                });
+                // $("#custtemplet").val('');
+            }
+        })
+    }
+    // 导入文件模板下载
+    function downbutton() {
+        var content = '<section class="content container-fluid">\
+        <div class="alert alert-warning alert-dismissible show" role="alert">\
+          <strong>*注:</strong> 默认勾选的字段都为必填！如果不填写值将会导入失败！\
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">\
+            <span aria-hidden="true">&times;</span>\
+          </button>\
+        </div>\
+        <div class="row">\
+            <form class="form-horizontal" id="thisForm">\
+            <div>\
+                <div class="col-sm-4">\
+                    <input type="checkbox" name="">\
+                    <label class="control-label">是否接听</label>\
+                </div>\
+                <div class="col-sm-4">\
+                    <input type="checkbox" name="">\
+                    <label class="control-label">联系方式</label>\
+                </div>\
+                <div class="col-sm-4">\
+                    <input type="checkbox" name="">\
+                    <label class="control-label">到店日期</label>\
+                </div>\
+            </div>\
+        </form></div></section>'
+        // 弹窗
+        layer.open({
+            type: 1,
+            title: '字段选择',
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['800px', '400px'],
+            content: content,
+            btn: ['下载', '关闭'],
+            success: function(layero, index) {
+                var crlf = 0
+                var $form = layero.find('form')
+                $form.html('')
+                var html = [];
+                var $row = $('<div></div>')
+                
+                $(fieldInfo).each(function(i, e) {
+                    if (e.Required != -1) {
+                        var $col = $('<div class="col-sm-4"><input type="checkbox"> <label class="control-label"></label></div>')
+                        $col.find('input').attr('name', CamelString(e.ColumnName))
+                        $col.find('input').attr('id', e.ColumnName)
+                        $col.find('label').text(e.FieldName)
+                        $col.find('label').attr('for', e.ColumnName)
+                        if (e.Required == 1) {
+                            $col.find('input').attr('checked', true)
+                            $col.find('input').attr('onclick', 'return false;')
+                        }
+                        // State为int类型，要更改
+                        if (e.ColumnName == 'state') {
+                            $col.find('input').attr('value', 1)
+                        }
+                        if (crlf != 0 && crlf%3 == 0) {
+                            html.push($row.prop('outerHTML'))
+                            $row = $('<div></div>')
+                            $row.append($col.prop('outerHTML'))
+                        } else {
+                            $row.append($col.prop('outerHTML'))
+                        }
+                        crlf++;
+                    }
+                    
+                })
+                html.push($row.prop('outerHTML'))
+                $form.html(html.join(''))
+            },
+            yes: function (index, layero) {
+                var $form = layero.find('form')
+                // console.log($form.find('input:checked'))
+                // var data = $form.serialize()
+                // console.log(data)
+                // data = data.replace('State=on', 'State=1')
+                // State为int类型，要更改
+                var url = '{{ urlfor "UserClientController.DownloadTmpl"}}';
+                $form.attr('target', '')
+                $form.attr('method', 'post')
+                $form.attr('action', url)
+                $form.submit()
+            }
+        })
+    }
+    // 导出客户资料
+    function ExportFun() {
+        $searchForm.attr('target', '')
+        $searchForm.attr('method', 'post')
+        $searchForm.attr('action', '{{ urlfor "UserClientController.Download"}}')
+        $searchForm.submit()
+    }
+    // 点击呼叫
+    function onClickCall(id, phone,state) {
+        var url = '{{ urlfor "CalloutController.DirectDial"}}';
+        data = {
+            tocallphone: $.trim(phone),
+        }
+        $.sdpost(url, data, function (re) {
+            if (re.code == 0) {
+                if (re.obj == 0) {
+                    layer.alert(re.msg, {icon: 1, title: '成功'}, function() {
+                        EditFun(id, phone, true)
+                        // AddRecord2(id,state)    // 现在合并在一起了
+                    });
+                } else {
+                    layer.alert(re.msg, {icon: 2, title: '失败'}, function() {
+                        EditFun(id, phone, true)
+                    });
+                }
+                
+            } else {
+                layer.alert(re.msg + re.obj, {icon: 2, title: "失败"});
+            }
+        });
+    }
+    // 发送短信
+    function showMsgModel(phone) {
+        var selected = {}
+        var $select = ''
+        var content = '<section class="content container-fluid">\
+        <div class="row">\
+            <form class="form-horizontal" style="padding-left:15px;padding-right:15px;" id="thisForm">\
+            <div class="form-group">\
+                <label class="col-sm-2 control-label">短信模板</label>\
+                <div class="col-sm-8">\
+                    <select name="sms_template" id="sms_template" class="form-control">\
+                    </select>\
+                </div>\
+            </div>\
+            <div class="form-group">\
+                <label class="col-sm-2 control-label">短信内容</label>\
+                <div class="col-sm-8">\
+                    <textarea name="sms_content" id="sms_content" rows="8" class="form-control"></textarea>\
+                </div>\
+            </div>\
+        </form></div></section>'
+        layer.open({
+            type: 1,
+            title: '发送短信',
+            shadeClose: false,
+            shade: 0.2,
+            maxmin: true,
+            shift: 1,
+            area: ['600px', '400px'],
+            content: content,
+            btn: ['发送', '关闭'],
+            success: function(layero, index) {
+                var url = '{{urlfor "SmsTemplateController.DataList"}}';
+                var $select =$("#sms_template");
+                $select.html('');
+                $.sdpost(url,{},function(re){
+                    if(re.code === 0){               
+                        var html=['<option value="" data-sms_content="">-请选择-</option>']
+                        $(re.obj).each(function(i,e){
+                            html.push('<option value="' + e.Id + '" data-sms_content="' + e.Content + '" data-company="' + e.UserCompanyId + '" data-classify="' + e.Classify + '">' + e.Title + '</option>')
+                        });
+                        $select.html(html.join(''));
+                        $select.selectpicker();
+                    }
+                    else{
+                        layer.alert("获取数据失败",{icon:2,title:'失败'})
+                    }
+                });
+                // select change event
+                $select.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+                    selected.content = $select.find('option:checked').data('sms_content')
+                    selected.ucid = $select.find('option:checked').data('company')
+                    selected.classify = $select.find('option:checked').data('classify')
+                    // fill send msg content
+                    $('#sms_content').text(selected.content)
+                });
+            },
+            yes: function (index, layero) {
+                var url = '{{ urlfor "SmsRecordController.SendMsg"}}';
+        
+                var dataValues = { 
+                    ucid: selected.ucid,
+                    classify: selected.classify,
+                    content: $.trim($('#sms_content').text()),
+                    phone: $.trim(phone),
+                };
+                // console.log(dataValues)
+                // return
+                $.sdpost(url, dataValues, function (re) {
+                    if (re.code === 0) {
+                        layer.msg(re.msg, { icon: 1, title: '成功' });
+                        layer.close(index)
+                    } else {
+                        layer.alert(re.msg, { icon: 2, title: "失败" });
+                    }
+                });
+            }
+        });
+    }
+    // 下划线格式转为驼峰格式，xx_yy -> XxYy
+    function CamelString(str) {
+        var strArr=str.split('_');
+
+        for (var i=0; i<strArr.length; i++) {
+            strArr[i] = strArr[i].charAt(0).toUpperCase() + strArr[i].substring(1);
+        }
+
+        return strArr.join('');
+    }
+
+</script>

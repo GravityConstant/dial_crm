@@ -1,0 +1,34 @@
+<form id="thisForm">
+    <input type="hidden" name="UserClientId" id="UserClientId" value="{{.Id}}">
+    <input type="hidden" name="BackendUserId"  value="{{.BackendUserId}}">
+    <input type="hidden" name="BackendUserName"  value="{{.BackendUserName}}">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>客户状态</label>
+                <select name="State" id="State" class="form-control bs-select">
+                    <option value="1" >无意向</option>
+                    <option value="2" >中等意向</option>
+                    <option value="3" >有意向</option>
+                </select>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>服务记录</label>
+                <textarea class="form-control" cols="30" rows="5" name="Context"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <a href='{{urlfor "UserServerHistoryController.RecordList"}}/{{.Id}}' target="_blank">查看历史记录</a>
+        </div>
+    </div>
+</form>
+</div>

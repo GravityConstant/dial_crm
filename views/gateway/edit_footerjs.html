@@ -1,0 +1,98 @@
+<!-- 验证插件 -->
+<script src="/static/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/static/plugins/jquery-validation/localization/messages_zh.min.js"></script>
+<!-- 针对当前主题进行简单封装，精简代码 -->
+<script src="/static/sdtheme/scripts/sdvalidate.js"></script>
+<script>
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    $(function () {
+        // 赋值
+        $('#GatewayType').selectpicker('val', '{{.m.GatewayType}}')
+        // 取自freeswitch的网关名
+        gatewayUrlInit('{{.m.GatewayUrl}}')
+        gatewayGroupInit('{{.gatewayGroupIds}}')
+        //验证
+        validateInfo();       
+    })
+    // 网关url下拉框初始化
+    function gatewayUrlInit(selected) {
+        var url = '{{urlfor "GatewayController.FsRegisterGatewayList"}}';
+        var $select =$("#GatewayUrlFromFs");
+        $select.html('');
+
+        $.sdpost(url,{},function(re){
+            if(re.code === 0){               
+                var html=[]
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Name + '">' + e.Name + '</option>')
+                });
+                $select.html(html.join(''));
+                $select.selectpicker();
+                $select.selectpicker('val',selected);
+            }
+            else{
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    // 网关组下拉框选择
+    function gatewayGroupInit(selecteds) {
+        var url = '{{urlfor "GatewayGroupController.DataList"}}';
+        var $select = $("#GatewayGroup");
+        $select.html('');
+
+        $.sdpost(url,{},function(re){
+            if (re.code === 0) {               
+                var html=[]
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Id + '">' + e.GatewayGroupName + '</option>')
+                });
+                $select.html(html.join(''));
+                $select.selectpicker();
+                var arrSelect = selecteds.split(',');
+                var selected = '';
+                if (arrSelect.length > 0) {
+                    selected = arrSelect[0]
+                }
+                $select.selectpicker('val', selected);
+            } else {
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    //表单验证及AJAX提交
+    function validateInfo() {
+        var $thisForm = $('#thisForm');
+        $thisForm.sdvalidate({
+            rules: {
+                GatewayName: {
+                    maxlength: 32,
+                    required: true
+                },
+                GatewayUrl: {
+                    required: true
+                }
+            },
+            messages: {},
+            submitHandler: function (form) {
+                var url ='{{ urlfor "GatewayController.Edit"}}'
+                var data = $thisForm.serialize();
+
+                $.sdpost(url,data,function(re){
+                    if(re.code === 0){
+                        parent.layer.msg(re.msg)
+                        parent.refresh(re.obj)
+                        parent.layer.close(index)
+                    }else{
+                        parent.layer.alert(re.msg,{icon:2,title:'失败'})
+                    }
+                });
+               return false;
+            }
+        });
+    }
+
+    function FormSubmit() {
+        $("#thisForm").submit();        
+    }
+</script>

@@ -1,0 +1,68 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        通话记录
+    </h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href='{{urlfor "HomeController.Index"}}'>
+                <i class="fa fa-dashboard"></i> 首页</a>
+        </li>
+        <li class="active">通话记录</li>
+    </ol>
+</section>
+<!-- Main content -->
+<section class="content container-fluid">
+    <!-- 页面内容开始 -->
+    <div class="row">
+        <div class="col-md-12">           
+            <form id="searchForm" class="searchForm">
+                <div class="box box-solid collapsed-box">
+                    <div class="box-header with-border">                     
+                        <input type="text" name="StartStamp" class="form-control pull-left input-wd-md" placeholder="yyyy-MM-dd HH:mm:ss">
+                        <span class="pull-left" style="line-height: 34px; margin-right:5px">--</span>
+                        <input type="text" name="EndStamp" class="form-control pull-left input-wd-md" placeholder="yyyy-MM-dd HH:mm:ss">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-warning" id="btnSearch"><i class="fa fa-search"></i> 搜索</button>
+                            <button type="button" class="btn btn-default" id="btnClearSearch"><i class="fa fa-eraser"></i> 清除</button>
+                            <button type="button" class="btn btn-default" id="btnDownload"><i class="fa fa-download"></i> 下载</button>
+                            <button type="button" class="btn btn-default" id="btnDownloadRecord"><i class="fa fa-download"></i> 下载录音</button>
+                        </div>
+						{{if .showMoreQuery }}
+                        <div class="box-tools pull-right">
+                            <button id="searchpanelbtn" type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                </button>
+                        </div>
+						{{end}}
+                        <!-- /.box-tools -->
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body" style="display: none;">
+                        <input type="text" name="CallerIdNumber" class="form-control pull-left input-wd-md" placeholder="主叫号码">
+                        <input type="text" name="DestinationNumber" class="form-control pull-left input-wd-md" placeholder="被叫号码">
+                        <select name="BillsecStatus" class="bs-select" data-width="100px">
+                            <option value="">全部</option>
+                            <option value="0">未接听</option>
+                            <option value="1">已接听</option>
+                        </select>
+                        <select name="DialplanIds" id="Dialplan" class="form-control" data-width="200px" multiple>
+                        </select>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+            </form>
+            <!-- /.searchForm -->
+            <div class="box box-solid">
+                <div class="box-body">
+                    <!-- <div class="btn-group" id="toolbar">
+                        <button class="btn btn-info" href="javascript:;" onclick="EditFun(0)">
+                            <i class="fa fa-plus"></i> 添加</button>
+                    </div> -->
+                    <table id="dataGrid" class="text-nowrap"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 页面内容结束 -->
+</section>
+<!-- /.content -->

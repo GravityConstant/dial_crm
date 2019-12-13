@@ -1,0 +1,50 @@
+<form id="thisForm">
+    <input type="hidden" name="Id" id="Id" value="{{.m.Id}}">
+    <input type="hidden" name="OriginationCallerIdNumber" id="Id" value="{{.m.OriginationCallerIdNumber}}">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>座席号码</label>
+                <select name="ExtNo" id="ExtNoFromFs" class="form-control">
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>座席密码</label>
+                <input type="text" name="ExtPwd" class="form-control" placeholder="联系管理员获取" value="{{.m.ExtPwd}}">
+            </div>
+        </div>      
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>中继小号</label>
+                <input type="text" name="GatewayPhoneNumber" class="form-control" placeholder="中继小号" value="{{.m.GatewayPhoneNumber}}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>所属用户</label>
+                <select name="BackendUserId" id="BackendUser" class="form-control">
+                </select>
+            </div>
+        </div>
+        <!-- <div class="col-md-6">
+            <div class="form-group">
+                <label>透传号码</label>
+                <input type="text" name="OriginationCallerIdNumber" class="form-control" placeholder="透传号码" value="{{.m.OriginationCallerIdNumber}}">
+            </div>
+        </div> -->      
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>网关</label>
+                <select name="GatewayId" id="Gateway" class="form-control">
+                </select>
+            </div>
+        </div>
+    </div>
+</form>
+</div>

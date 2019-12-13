@@ -1,0 +1,45 @@
+<div class="row">
+    <!-- form start -->
+    <form class="form-horizontal" id="thisForm">
+        <input type="hidden" Name="Id" id="Id" value="{{.m.Id}}">
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">中继号码</label>
+            <div class="col-sm-4">
+                <input type="text" name="Phone" class="form-control" placeholder="中继号码" value="{{.m.Phone}}">
+            </div>
+        </div>
+        {{if eq .m.Id 0}}
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">号码数量</label>
+            <div class="col-sm-4">
+                <input type="number" name="PhoneNo" class="form-control" placeholder="号码数量">
+            </div>
+        </div>
+        {{end}}
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">所属网关</label>
+            <div class="col-sm-4">
+                <select name="GatewayId" id="Gateway" class="form-control">
+                </select>
+            </div>
+        </div>
+        {{if gt .m.Id 0}}
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">所属坐席</label>
+            <div class="col-sm-4">
+                <select name="AgentId" id="Agent" class="form-control">
+                </select>
+            </div>
+        </div>
+        {{end}}
+        {{if eq .m.Id 0}}
+        <div class="form-group">
+            <div class="col-sm-offset-4 col-sm-4">
+                <small>中继号码是第一个号码，根据数量一次递增。</small>
+                <small>如：中继号码是28324284，号码数量为2。</small>
+                <small>那就是插入2个号码，分别为28324284,28324285</small>
+            </div>
+        </div>
+        {{end}}
+    </form>
+</div>

@@ -1,0 +1,42 @@
+<form id="thisForm">
+    <input type="hidden" name="Id" id="Id" value="{{.m.Id}}">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>公司名称</label>
+                <input type="text" name="Name" class="form-control" placeholder="长度不超过24" value="{{.m.Name}}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>公司英文缩写</label>
+                <input type="text" name="NameAbbr" class="form-control" placeholder="长度不超过16" value="{{.m.NameAbbr}}">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>网关组</label>
+                <select name="GatewayGroupId" id="GatewayGroup" class="form-control">
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>限制呼同一号码次数</label>
+                <input type="number" name="LimitDial" class="form-control" placeholder="限制呼叫次数" value="{{.m.LimitDial}}">
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>主叫限制呼叫次数</label>
+                <input type="number" name="LimitCaller" class="form-control" placeholder="限制呼叫次数" value="{{.m.LimitCaller}}">
+            </div>
+        </div>
+    </div> 
+</form>
+</div>

@@ -1,0 +1,144 @@
+<link rel="stylesheet" type="text/css" href="/static/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+<div class="row">
+    <!-- form start -->
+    <form class="form-horizontal" id="thisForm">
+        <input type="hidden" name="Id" id="Id" value="{{.m.Id}}">
+        <input type="hidden" name="dialSuccess" value="{{.dialSuccess}}">
+    <!--{{if .ma.Name.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">客户姓名</label>
+            <div class="col-sm-8">
+                <input type="text" name="Name" class="form-control" placeholder="请输入客户姓名" value="{{.m.Name}}">
+            </div>
+        </div>
+        {{end}}
+
+        {{if .ma.MobilePhone.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">手机</label>
+            <div class="col-sm-8">
+                <input type="text" name="MobilePhone" class="form-control" placeholder="请输入手机" value="{{.m.MobilePhone}}">
+            </div>
+        </div>
+        {{end}}
+
+        {{if .ma.ContractPhone.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">联系方式</label>
+            <div class="col-sm-8">
+                <input type="text" name="ContractPhone" class="form-control" placeholder="请输入联系方式" value="{{.m.ContractPhone}}">
+            </div>
+        </div>
+        {{end}}
+
+        {{if .ma.Comment.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">备注</label>
+            <div class="col-sm-8">
+                <textarea name="Comment" class="form-control" cols="30" rows="5"></textarea>
+            </div>
+        </div>
+        {{end}}
+        {{if .ma.Address.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">地址</label>
+            <div class="col-sm-8">
+                <input type="text" name="Address" class="form-control" placeholder="请输入地址" value="{{.m.Address}}">
+            </div>
+        </div>
+        {{end}}
+        {{if .ma.State.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">客户状态</label>
+            <div class="col-sm-8">
+                <select name="State" id="State" class="form-control bs-select">                   
+                    <option value="0">无意向</option>
+                    <option value="1">中等意向</option>
+                    <option value="2">有意向</option>
+                </select>
+            </div>
+        </div>
+        {{end}}
+        {{if .ma.Feature.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">客户特征</label>
+            <div class="col-sm-8">
+                <select name="Feature" id="Feature" class="form-control">
+                </select>
+            </div>
+        </div>
+        {{end}}
+        {{if .ma.Complaint.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">是否投诉</label>
+            <div class="col-sm-8">
+                <input type="text" name="Complaint" class="form-control" placeholder="请输入投诉内容" value="{{.m.Complaint}}">
+            </div>
+        </div>
+        {{end}}
+        {{if .ma.ClueFrom.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">线索来源</label>
+            <div class="col-sm-8">
+                <select name="ClueFrom" id="ClueFrom" class="form-control bs-select">
+                    <option value="0">百度推广</option>
+                    <option value="1">QQ咨询</option>
+                    <option value="2">其他</option>
+                </select>
+            </div>
+        </div>
+        {{end}}
+        
+        {{if .ma.Email.AddShow}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">邮箱</label>
+            <div class="col-sm-8">
+                <input type="text" name="Email" class="form-control" placeholder="请输入客户邮箱" value="{{.m.Email}}">
+            </div>
+        </div>
+        {{end}} -->
+        <!-- 服务记录 -->
+        <textarea style="display: none;" class="form-control" cols="30" rows="5" name="Context"></textarea>
+    </form>
+</div>
+
+<!-- 服务记录 -->
+{{ if .dialSuccess }}
+<hr>
+
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">服务记录</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">历史服务记录</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade active in" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div class="row" style="margin-top: 15px;">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">服务记录</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" cols="30" rows="5" name="ContextShow"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-solid">
+                        <div class="box-body">
+                            <table id="dataGrid"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

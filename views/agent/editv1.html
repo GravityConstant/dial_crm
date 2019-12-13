@@ -1,0 +1,52 @@
+<div class="row">
+    <!-- form start -->
+    <form class="form-horizontal" id="thisForm">
+        <input type="hidden" Name="Id" id="Id" value="{{.m.Id}}">
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">座席号码</label>
+            <div class="col-sm-4">
+                <select name="ExtNo" id="ExtNoFromFs" class="form-control">
+                </select>
+            </div>
+        </div>
+        {{if eq .m.Id 0}}
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">号码数量</label>
+            <div class="col-sm-4">
+                <input type="number" name="PhoneNo" class="form-control" placeholder="号码数量">
+            </div>
+        </div>
+        {{end}}
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">座席密码</label>
+            <div class="col-sm-4">
+                <input type="text" name="ExtPwd" class="form-control" placeholder="联系管理员获取" value="{{.m.ExtPwd}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">所属用户</label>
+            <div class="col-sm-4">
+                <select name="BackendUserId" id="BackendUser" class="form-control">
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">默认使用网关</label>
+            <div class="col-sm-4">
+                <select name="DefaultTrunk" id="DefaultTrunk" class="form-control bs-select">                   
+                    <option value="0">电话线中继</option>
+                    <option value="1">插手机卡中继</option>
+                </select>
+            </div>
+        </div>
+        {{if eq .m.Id 0}}
+        <div class="form-group">
+            <div class="col-sm-offset-4 col-sm-4">
+                <small>座席号码是第一个号码，根据数量依次递增。</small>
+                <small>如：座席号码是80000，号码数量为2。</small>
+                <small>那就是插入2个号码，分别为80000,80001</small>
+            </div>
+        </div>
+        {{end}}
+    </form>
+</div>

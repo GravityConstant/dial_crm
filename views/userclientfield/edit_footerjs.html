@@ -1,0 +1,125 @@
+<!-- 验证插件 -->
+<script src="/static/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/static/plugins/jquery-validation/localization/messages_zh.min.js"></script>
+<!-- 针对当前主题进行简单封装，精简代码 -->
+<script src="/static/sdtheme/scripts/sdvalidate.js"></script>
+<script>
+    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+
+    $(function () { 
+        pageInit(); 
+    })
+    function pageInit(){
+        //附值
+        $("#FieldType").selectpicker('val','{{.m.FieldType}}');
+        $("#ListShow").selectpicker('val','{{.m.ListShow}}');
+        $("#AddShow").selectpicker('val','{{.m.AddShow}}');
+        $("#QueryShow").selectpicker('val','{{.m.QueryShow}}');
+        // 设置FieldTypeValue是否该显示
+        fieldTypeValueOptionsInit('{{.m.FieldTypeValue}}')
+        //验证
+        validateInfo(); 
+        // admin用户需要指定公司
+        if ('{{.backenduser.UserName}}' == 'admin') {
+            userCompanyInit();
+        } else {
+            $('#UserCompanyRow').css('display', 'none')
+        }
+    }
+    // 设置FieldTypeValue是否该显示
+    function fieldTypeValueOptionsInit(value) {
+        var $select = $('#FieldType');
+        var $changed = $('#FieldTypeValueOptions')
+
+        // 初始化
+        var initFieldType = parseInt($select.selectpicker('val'))
+        if (initFieldType == 2 || initFieldType == 3) {
+            $changed.css('display', 'block')
+            if (!$.isEmptyObject($changed)) {
+                $('#FieldTypeValue').text(value.replace(/,/g, '\r\n'))
+            }
+        } else {
+            $changed.css('display', 'none')
+        }
+        // 下拉框更改事件
+        $select.on('changed.bs.select', function(e, clickedIndex, isSelected, previousValue) {
+            var curFieldType = parseInt(e.target.value)
+
+            if (curFieldType == 2 || curFieldType == 3) {
+                $changed.css('display', 'block')
+            } else {
+                $changed.css('display', 'none')
+            }
+        });
+    }
+    // admin指定公司初始化
+    function userCompanyInit() {
+        var url = '{{urlfor "UserCompanyController.DataList"}}';
+        var $select = $("#UserCompany");
+        $select.html('');
+        $.sdpost(url,{},function(re){
+            if(re.code === 0){               
+                var html=[]
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Id + '">' + e.Name + '</option>')
+                });               
+                $select.html(html.join(''));
+                $select.selectpicker();
+            } else {
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+
+    //表单验证及AJAX提交
+    function validateInfo() {
+        var $thisForm = $('#thisForm');
+        $thisForm.sdvalidate({
+            rules: {
+                FieldType: {
+                    required: true,
+                },
+                FieldName: {
+                    required: true,
+                },
+                ListShow: {
+                    required: true,
+                },
+                AddShow: {
+                    required: true,
+                },
+                QueryShow: {
+                    required: true,
+                },
+            },
+
+            submitHandler: function (form) {
+                var url ='{{ urlfor "UserClientFieldController.Edit"}}'
+                var fieldType = $thisForm.find('select[name="FieldType"]').selectpicker('val')
+                var fieldTypeValue = $thisForm.find('textarea[name="FieldTypeValue"]').val()
+                if (fieldType == '2' || fieldType == '3') {
+                    if (fieldTypeValue == undefined || (fieldTypeValue.length == 0)) {
+                        parent.layer.alert('选项类型是必填字段')
+                    }
+                } 
+                var data = $thisForm.serialize();
+                // console.log(data)
+                // return             
+                $.sdpost(url,data,function(re){
+                    if(re.code === 0){
+                        parent.layer.msg(re.msg)
+                        parent.refresh(re.obj)
+                        parent.layer.close(index)
+                    }else{
+                        parent.layer.alert(re.msg,{icon:2,title:'失败'})
+                    }
+                });
+               return false;
+            }
+        });
+    }
+
+    function FormSubmit() {
+        $("#thisForm").submit();        
+    }
+</script>

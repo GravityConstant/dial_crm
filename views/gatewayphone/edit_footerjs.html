@@ -1,0 +1,89 @@
+<!-- 验证插件 -->
+<script src="/static/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/static/plugins/jquery-validation/localization/messages_zh.min.js"></script>
+<!-- 针对当前主题进行简单封装，精简代码 -->
+<script src="/static/sdtheme/scripts/sdvalidate.js"></script>
+<script>
+	var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+    $(function () { 
+        pageInit(); 
+    })
+    function pageInit(){
+        // 网关下拉框初始化
+        gatewaySelectInit('{{.m.GatewayId}}');
+        // 坐席下拉框初始化
+        agentSelectInit('{{.m.AgentId}}');
+        //验证
+        validateInfo(); 
+    }   
+    // 网关下拉框初始化
+    function gatewaySelectInit(selected){
+        var url = '{{urlfor "GatewayController.DataList"}}';
+        var $select = $("#Gateway");
+        $select.html('');
+        $.sdpost(url, {}, function(re){
+            if(re.code === 0){               
+                var html=[]
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Id + '">' + e.GatewayName + '</option>')
+                });
+                $select.html(html.join(''));
+                $select.selectpicker();
+                $select.selectpicker('val',selected);
+            }
+            else{
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    // 坐席下拉框初始化
+    function agentSelectInit(selected){
+        var url = '{{urlfor "AgentController.DataList"}}';
+        var $select = $("#Agent");
+        $select.html('');
+        $.sdpost(url, {}, function(re){
+            if(re.code === 0){               
+                var html=[]
+                $(re.obj).each(function(i,e){
+                    html.push('<option value="' + e.Id + '">' + e.ExtNo + '</option>')
+                });
+                $select.html(html.join(''));
+                $select.selectpicker();
+                $select.selectpicker('val',selected);
+            }
+            else{
+                layer.alert("获取数据失败",{icon:2,title:'失败'})
+            }
+        });
+    }
+    //表单验证及AJAX提交
+    function validateInfo() {
+        var $thisForm = $('#thisForm');
+        $thisForm.sdvalidate({
+            rules: {
+                Phone: {
+                    required: true
+                }
+            },
+            messages: {},
+            submitHandler: function (form) {
+				var url ='{{ urlfor "GatewayPhoneController.Edit"}}'
+				var data = $thisForm.serialize();				
+				$.sdpost(url,data,function(re){
+					if(re.code === 0){
+						parent.layer.msg(re.msg)
+						parent.refresh(re.obj)
+						parent.layer.close(index)
+					}else{
+						parent.layer.alert(re.msg,{icon:2,title:'失败'})
+					}
+				});
+               return false;
+            }
+        });
+    }
+
+    function FormSubmit() {
+        $("#thisForm").submit();		
+    }
+</script>
