@@ -16,6 +16,9 @@ func (c *HomeController) Index() {
 	//判断是否登录
 	c.checkLogin()
 	c.setTpl()
+	c.LayoutSections = make(map[string]string)
+	c.LayoutSections["headcssjs"] = "home/index_headcssjs.html"
+	c.LayoutSections["footerjs"] = "home/index_footerjs.html"
 }
 func (c *HomeController) Page404() {
 	c.setTpl()

@@ -3,6 +3,7 @@ package sysinit
 import (
 	"zq/callout_crm/utils"
 	"zq/callout_crm/dial"
+	"zq/callout_crm/controllers"
 
 	"github.com/astaxie/beego"
 )
@@ -18,8 +19,12 @@ func init() {
 	InitDatabase()
 	// 设置静态路径
 	setStaticPath()
-	// 轮询选取号码
+	// 外呼初始化
 	dial.CalloutInit()
+	// 呼入初始化
+	dial.CallinInit()
+	// 所有连接的集合
+	controllers.CallInHubInit()
 }
 
 func setStaticPath() {

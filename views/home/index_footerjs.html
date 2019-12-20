@@ -1,0 +1,126 @@
+<script type="text/javascript">
+window.addEventListener("load", function(evt) {
+
+    var output = document.getElementById("output");
+    var ws;
+
+    var print = function(message) {
+        var d = document.createElement("div");
+        d.innerHTML = message;
+        output.appendChild(d);
+    };
+
+    document.getElementById("open").onclick = function(evt) {
+        if (ws) {
+            return false;
+        }
+        ws = new WebSocket("ws://" + window.location.host + "/ws/echo");
+        ws.onopen = function(evt) {
+            print("OPEN");
+            // ws.send('open ok');
+        }
+        ws.onclose = function(evt) {
+            print("CLOSE");
+            ws = null;
+        }
+        ws.onmessage = function(evt) {
+            var data = JSON.parse(evt.data);
+            // ws.send('receive ok');
+            // print("RESPONSE: " + evt.data);
+            OpenUserClientWindow(data)
+        }
+        ws.onerror = function(evt) {
+            // var data = JSON.parse(evt.data);
+            print("ERROR: " + evt.data);
+        }
+        return false;
+    };
+
+    document.getElementById("close").onclick = function(evt) {
+        if (!ws) {
+            return false;
+        }
+        ws.close();
+        return false;
+    };
+
+});
+$(function () {
+    // WebSocketInit();
+});
+
+function WebSocketInit() {
+    var output = document.getElementById("output");
+    var ws;
+
+    var print = function(message) {
+        var d = document.createElement("div");
+        d.innerHTML = message;
+        output.appendChild(d);
+    };
+
+    if (ws) {
+        return
+    }
+    ws = new WebSocket("ws://" + window.location.host + "/ws/echo");
+    
+    ws.onopen = function(evt) {
+        print("OPEN");
+        ws.send('open ok');
+    }
+    ws.onclose = function(evt) {
+        print("CLOSE");
+        ws = null;
+    }
+    ws.onmessage = function(evt) {
+        var data = JSON.parse(evt.data);
+        ws.send('receive ok');
+        print("RESPONSE: " + data);
+        OpenUserClientWindow(data)
+
+    }
+    ws.onerror = function(evt) {
+        var data = JSON.parse(evt.data);
+        print("ERROR: " + data);
+    }
+}
+
+function OpenUserClientWindow(data) {
+    var url = '{{urlfor "UserClientController.IsExistedCalledPhone"}}';
+    var dataValues = {
+        tocallphone: data.Caller,
+    }
+    $.sdpost(url, dataValues, function(re){
+        if (re.code === 0) {
+            console.log(re)               
+            EditUserClientFun(re.obj.Id, data.Caller, true)
+        } else {
+            layer.alert("获取数据失败",{icon:2,title:'失败'})
+        }
+    });
+}
+
+function EditUserClientFun(Id, phone, dialSuccess) {
+    var title = '添加客户资料';
+    if (Id > 0) {
+        title = "编辑客户资料"
+    }
+    var url = '{{ urlfor "UserClientController.Edit"}}' + '/' + Id + '/' + phone + '/' + dialSuccess;
+    console.log('dialSuccess: ', url)
+    layer.open({
+        type: 2,
+        title: title,
+        shadeClose: false,
+        shade: 0.2,
+        maxmin: true,
+        shift: 1,
+        area: ['1200px', '95%'],
+        content: url,
+        btn: ['保存', '关闭'],
+        yes: function (index, layero) {
+            var iframeWin = window[layero.find('iframe')[0]['name']];
+            iframeWin.FormSubmit();
+        }
+    });
+}
+</script>

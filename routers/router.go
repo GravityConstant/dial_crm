@@ -172,4 +172,7 @@ func init() {
 	beego.Router("/gatewayphone/edit/?:id", &controllers.GatewayPhoneController{}, "Get,Post:Edit")
 	beego.Router("/gatewayphone/delete", &controllers.GatewayPhoneController{}, "Post:Delete")
 	beego.Router("/gatewayphone/allocateagent", &controllers.GatewayPhoneController{}, "Post:AllocateAgent")
+
+	// websocket
+	beego.Router("/ws/echo", &controllers.WebSocketController{}, "*:Echo")
 }
