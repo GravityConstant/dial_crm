@@ -50,8 +50,8 @@ func (h *Handler) OnConnect(con *esl.Connection) {
 	utils.Info("aleg: %s, bleg: %s", h.ALegUId, h.BLegUId)
 
 	// 主叫
-	outbound := `{origination_uuid=%s,dialplan_id=%d,hangup_after_bridge=true}%s`
-	outbound = fmt.Sprintf(outbound, h.ALegUId, h.UserId, h.ExtensionNumber)
+	outbound := `{origination_uuid=%s,hangup_after_bridge=true}%s`
+	outbound = fmt.Sprintf(outbound, h.ALegUId, h.ExtensionNumber)
 	// 被叫
 	// {origination_caller_id_number=28324295,sip_h_Diversion=<sip:28324295@ip>}sofia/gateway/zqzj/$1
 	calloutString := `&bridge({origination_uuid=%s,dialplan_id=%d,origination_caller_id_number=%s,sip_h_Diversion=<sip:%s@ip>}sofia/gateway/%s/%s)`

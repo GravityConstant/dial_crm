@@ -55,6 +55,8 @@ type CallPgCdr struct {
 	SipGatewayName         string
 	DialplanId             int64
 	FeeRate                float64
+	RealName               string
+	ExtNo                  string
 }
 
 // CallPgCdrPageList 获取分页数据
@@ -68,8 +70,6 @@ func CallPgCdrPageList(params *CallPgCdrQueryParam) ([]*CallPgCdr, int64) {
 	switch params.Sort {
 	case "Id":
 		sortorder = "Id"
-	case "Seq":
-		sortorder = "Seq"
 	}
 	if params.Order == "desc" {
 		sortorder = "-" + sortorder
@@ -124,10 +124,13 @@ func CallPgCdrPageList(params *CallPgCdrQueryParam) ([]*CallPgCdr, int64) {
 
 	var sql string
 	var total int64
-	sqlCol := `select id, local_ip_v4, (select real_name from crm_backend_user where id=dialplan_id) as caller_id_name, (select ext_no from crm_agent where backend_user_id=dialplan_id) as caller_id_number, outbound_caller_id_number, destination_number, context, start_stamp, answer_stamp, end_stamp, duration, billsec, hangup_cause, uuid, bleg_uuid, accountcode, read_codec, write_codec, record_file, direction, sip_hangup_disposition, origination_uuid, sip_gateway_name, dialplan_id, fee_rate `
-	sqlFrom := `from ` + CallPgCdrTBName() + ` where char_length(sip_gateway_name) > 0 `
+	// sqlCol := `select id, local_ip_v4, (select real_name from crm_backend_user where id=dialplan_id) as caller_id_name, (select ext_no from crm_agent where backend_user_id=dialplan_id) as caller_id_number, outbound_caller_id_number, destination_number, context, start_stamp, answer_stamp, end_stamp, duration, billsec, hangup_cause, uuid, bleg_uuid, accountcode, read_codec, write_codec, record_file, direction, sip_hangup_disposition, origination_uuid, sip_gateway_name, dialplan_id, fee_rate `
+	sqlCol := `select id, caller_id_number, destination_number, billsec, record_file, direction, start_stamp,  
+				(select real_name from crm_backend_user where id=dialplan_id), 
+				(select ext_no from crm_agent where backend_user_id=dialplan_id) `
+	sqlFrom := `from ` + CallPgCdrTBName()
 	if len(query.FilterStr) > 0 {
-		sql = sqlCol + sqlFrom + "and " + query.String()
+		sql = sqlCol + sqlFrom + " where " + query.String()
 	} else {
 		sql = sqlCol + sqlFrom + query.String()
 	}
@@ -135,7 +138,7 @@ func CallPgCdrPageList(params *CallPgCdrQueryParam) ([]*CallPgCdr, int64) {
 		sqlCol = `select count(*) total `
 		sql = sqlCol + sqlFrom
 		if len(query.FilterStr) > 0 {
-			sql = sqlCol + sqlFrom + "and " + query.FilterStr
+			sql = sqlCol + sqlFrom + " where " + query.FilterStr
 		}
 		type Option struct {
 			Total int64

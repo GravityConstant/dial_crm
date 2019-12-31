@@ -5,6 +5,8 @@ import (
     "log"
     "time"
     "strings"
+    "strconv"
+    "path/filepath"
 
     "zq/callout_crm/models"
     "zq/callout_crm/utils"
@@ -12,15 +14,23 @@ import (
     "github.com/vma/esl"
 )
 
+// 这个是一条腿一条腿的桥接的方式
+// type CallinHandler struct {
+//     Caller         map[string]string    // [aleg_uuid]bleg_uuid
+//     CalloutNumbers map[string]int       // [aleg_uuid]count
+//     Callee         map[string]string    // [belg_uuid]aleg_uuid
+// }
+
 type CallinHandler struct {
-    Caller map[string]int    // [aleg_uuid]1
-    Callee map[string]string // [belg_uuid]aleg_uuid
+    Caller         map[string]struct{}  // 就想标记一下呼入
 }
 
 func CallinInit() {
     callInHandler := new(CallinHandler)
-    callInHandler.Caller = make(map[string]int)
-    callInHandler.Callee = make(map[string]string)
+    callInHandler.Caller = make(map[string]struct{})
+    // callInHandler.Caller = make(map[string]string)
+    // callInHandler.CalloutNumbers = make(map[string]int)
+    // callInHandler.Callee = make(map[string]string)
 
     go func() {
     RESTART:
@@ -38,7 +48,7 @@ func CallinInit() {
 }
 
 func (h *CallinHandler) OnConnect(con *esl.Connection) {
-    con.SendRecv("event", "plain", "CHANNEL_CREATE CHANNEL_HANGUP")
+    con.SendRecv("event", "plain", "CHANNEL_CREATE CHANNEL_ANSWER CHANNEL_HANGUP")
     // con.SendRecv("event", "plain", "ALL")
 }
 
@@ -56,67 +66,144 @@ func (h *CallinHandler) OnEvent(con *esl.Connection, ev *esl.Event) {
     direction := ev.Get("Call-Direction")
     callerNumber := ev.Get("Caller-Caller-ID-Number")
     destinationNumber := ev.Get("Caller-Destination-Number")
-    if ok := needHandleOnEvent(direction, destinationNumber); !ok {
+    if !needHandleOnEvent(direction, destinationNumber) {
+        utils.Info("no on event -- direction: %s, caller: %s, callee: %s", direction, callerNumber, destinationNumber)
         return
     }
 
     switch ev.Name {
     case esl.CHANNEL_CREATE:
-        utils.Info("direction: %s, caller: %s, callee: %s", direction, callerNumber, destinationNumber)
+        utils.Info("channel_create -- direction: %s, caller: %s, callee: %s", direction, callerNumber, destinationNumber)
         // fmt.Println(ev)
         if strings.Compare(direction, "inbound") == 0 {
-            extNo := models.GetExtNoByTrunkNo(destinationNumber)
-            if len(extNo) > 0 {
-                // if blegUId, err := con.Api("create_uuid"); err != nil {
+            // extNo, bindPhone := models.GetExtNoByTrunkNo(destinationNumber)
+            tau := models.GetExtNoByTrunkNo(destinationNumber)
+            if len(tau.ExtNo) > 0 {
+                // con.Execute("set", ev.UId, fmt.Sprintf("dialplan_id=%d", tau.BackendUserId))
+                // con.Execute("loop_playback", ev.UId, fmt.Sprintf("+6 %s", "/home/voices/rings/common/ring_short.wav"))
+                // 先桥接一端，成功了再桥接
+                // if blegUId, err := con.BgApi("create_uuid"); err != nil {
                 //     con.Execute("hangup", ev.UId)
                 // } else {
-                //     if _, err := con.Api("originate", fmt.Sprintf("{origination_uuid=%s,origination_caller_id_number=%s,effective_caller_id_number=%s}user/%s", blegUId, callerNumber, callerNumber, extNo), "&park"); err != nil {
+                //     // 添加aleg=bleg信息
+                //     h.Caller[ev.UId] = blegUId
+                //     h.CalloutNumbers[ev.UId] = 2
+                //     if _, err := con.BgApi("originate", fmt.Sprintf("{origination_uuid=%s,origination_caller_id_number=%s,effective_caller_id_number=%s}user/%s", blegUId, callerNumber, callerNumber, tau.ExtNo), "&park"); err != nil {
                 //         utils.Error("%v\n", err)
-                //         con.Execute("playback", ev.UId, "/home/voices/rings/common/busy.wav")
+                //         // con.Execute("playback", ev.UId, "/home/voices/rings/common/busy.wav")
+                //         // con.Execute("hangup", ev.UId)
+                //         if len(tau.BindPhone) > 0 {
+                //             if blegUId, err := con.BgApi("create_uuid"); err != nil {
+                //                 con.Execute("hangup", ev.UId)
+                //             } else {
+                //                 // aleg还存在才外呼
+                //                 if _, ok := h.Caller[ev.UId]; ok {
+                //                     // 添加aleg=bleg信息
+                //                     h.Caller[ev.UId] = blegUId
+                //                     if _, err := con.BgApi("originate", fmt.Sprintf("{origination_uuid=%s,origination_caller_id_number=%s,sip_h_Diversion=<sip:28324284@ip}sofia/gateway/%s/%s", blegUId, callerNumber, tau.Gateway, tau.BindPhone), "&park"); err != nil {
+                //                         utils.Error("originate out number error: %v\n", err)
+                //                         con.Execute("playback", ev.UId, "/home/voices/rings/common/busy.wav")
+                //                         con.Execute("hangup", ev.UId)
+                //                     } else {
+                //                         con.BgApi("uuid_bridge", ev.UId, blegUId)
+                //                     }
+                //                 }
+                //             }
+                //         } else {
+                //             _, ok1 := h.Caller[ev.UId]
+                //             _, ok2 := h.Callee[blegUId]
+                //             if ok1 && ok2 {
+                //                 con.Execute("hangup", ev.UId)
+                //             }
+                //         }
                 //     } else {
-                //         con.Api("uuid_bridge", ev.UId, blegUId)
+                //         _, ok1 := h.Caller[ev.UId]
+                //         _, ok2 := h.Callee[blegUId]
+                //         if ok1 && ok2 {
+                //             con.BgApi("uuid_bridge", ev.UId, blegUId)
+                //         }
+                        
                 //     }
                 // }
+                
+                // 直接桥接
                 con.Execute("set", ev.UId, "hangup_after_bridge=true")
-                con.Execute("bridge", ev.UId, fmt.Sprintf("{ringback=/home/voices/rings/common/ring_short.wav,origination_caller_id_number=%s}user/%s", callerNumber, extNo))
+                con.Execute("set", ev.UId, fmt.Sprintf("dialplan_id=%d", tau.BackendUserId))
+                // 呼叫字符串
+                calloutStrs := make([]string, 1, 2)
+                calloutStrs[0] = fmt.Sprintf("{ringback=/home/voices/rings/common/ring_short.wav,origination_caller_id_number=%s,leg_timeout=?}user/%s", callerNumber, tau.ExtNo)
+                if len(tau.BindPhone) > 0 {
+                    calloutStrs = append(calloutStrs, fmt.Sprintf("[sip_h_Diversion=<sip:%s@ip>]sofia/gateway/%s/%s", tau.TrunkNo, tau.Gateway, tau.BindPhone))
+                }
+                strings.Replace(calloutStrs[0], "?", strconv.Itoa(60/len(calloutStrs)), 1)
+                con.Execute("bridge", ev.UId, strings.Join(calloutStrs, "|"))
                 if _, ok := h.Caller[ev.UId]; !ok {
-                    h.Caller[ev.UId] = 1
+                    h.Caller[ev.UId] = struct{}{}
                 }
                 // 推送到WebSocketController echo
                 models.WsMessage <- models.WsCallInfo{
                     Caller: callerNumber,
                     Callee: destinationNumber,
-                    ExtNo:  extNo,
+                    ExtNo:  tau.ExtNo,
                 }
             } else {
                 con.Execute("hangup", ev.UId)
             }
-        } else if strings.Compare(direction, "outbound") == 0 {
-            callerUId := ev.Get("Channel-Call-UUID")
-            if _, ok := h.Callee[ev.UId]; !ok {
-                h.Callee[ev.UId] = callerUId
-            }
-        } else {
-            con.Execute("hangup", ev.UId)
-        }
+        } 
+        // else if strings.Compare(direction, "outbound") == 0 {
+        //     callerUId := ev.Get("Channel-Call-UUID")
+        //     if _, ok := h.Callee[ev.UId]; !ok {
+        //         h.Callee[ev.UId] = callerUId
+        //     }
+        // } else {
+        //     con.Execute("hangup", ev.UId)
+        // }
         
+    case esl.CHANNEL_ANSWER:
+        if _, ok := h.Caller[ev.UId]; ok {
+            // 设置录音
+            rec := &Record{}
+            rec.InitCallIn(callerNumber, destinationNumber)
+            // uuid_setvar <uuid> <varname> [value]
+            recparamsFormat := `%s %s %s`
+            con.BgApi("uuid_setvar", fmt.Sprintf(recparamsFormat, ev.UId, rec.Name, rec.File))
+            // uuid_record <uuid> [start|stop|mask|unmask] <path> [<limit>]
+            con.BgApi("uuid_record", fmt.Sprintf(recparamsFormat, ev.UId, "start", filepath.Join(rec.PrefixPath, rec.File)))
+        }
 
     case esl.CHANNEL_HANGUP:
+        utils.Info("channel_hangup -- direction: %s, caller: %s, callee: %s", direction, callerNumber, destinationNumber)
         if _, ok := h.Caller[ev.UId]; ok {
             delete(h.Caller, ev.UId)
         }
-        if aUId, ok := h.Callee[ev.UId]; ok {
-            if _, ok := h.Caller[ev.UId]; ok {
-                con.Execute("hangup", aUId)
-            }
-            delete(h.Callee, ev.UId)
-        }
+        // if bUId, ok := h.Caller[ev.UId]; ok {
+        //     if _, ok := h.Callee[bUId]; ok {
+        //         con.Execute("hangup", bUId)
+        //         delete(h.Callee, bUId)
+        //     }
+        //     delete(h.Caller, ev.UId)
+        //     delete(h.CalloutNumbers, ev.UId)
+        // }
+        // if aUId, ok := h.Callee[ev.UId]; ok {
+        //     if _, ok := h.Caller[aUId]; ok {
+        //         if tmp, ok := h.CalloutNumbers[aUId]; ok {
+        //             if tmp == 0 {
+        //                 con.Execute("hangup", aUId)
+        //                 delete(h.Caller, aUId)
+        //             } else {
+        //                 h.CalloutNumbers[aUId] -= 1
+        //             }
+                    
+        //         }
+        //     }
+        //     delete(h.Callee, ev.UId)
+        // }
     }
 }
 
 func needHandleOnEvent(direction, destinationNumber string) bool {
     // li and qin
-    if strings.Compare(destinationNumber, "28324286") == 0 &&
+    if strings.Compare(destinationNumber, "28324286") == 0 ||
         strings.Compare(destinationNumber, "28324300") == 0 {
             return false
     }
@@ -135,7 +222,7 @@ func needHandleOnEvent(direction, destinationNumber string) bool {
         }
     } else if strings.Compare(direction, "outbound") == 0 {
         extNos := []string{
-            "80000", "80001", "80002", "80003", "80004",
+            "80000", "80001", "80002", "80003", "80004", "13675017141",
         }
         for _, extNo := range extNos {
             if strings.Compare(destinationNumber, extNo) == 0 {

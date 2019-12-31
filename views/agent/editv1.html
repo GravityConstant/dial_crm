@@ -39,6 +39,12 @@
                 </select>
             </div>
         </div>
+        <div class="form-group">
+            <label class="col-sm-offset-2 col-sm-2 control-label">绑定号码</label>
+            <div class="col-sm-4">
+                <input type="text" name="BindPhone" class="form-control" placeholder="坐席未登陆外呼的号码" value="{{.m.BindPhone}}">
+            </div>
+        </div>
         {{if eq .m.Id 0}}
         <div class="form-group">
             <div class="col-sm-offset-4 col-sm-4">

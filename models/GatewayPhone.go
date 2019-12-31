@@ -174,17 +174,26 @@ func GatewayPhoneBatchAllocateAgent(ids []int, agentId int) (int64, error) {
     return num, err
 }
 
+// 获取坐席等信息
+type TrunkAgentUser struct {
+    TrunkNo       string
+    Gateway       string
+    ExtNo         string
+    BindPhone     string
+    BackendUserId int
+}
 // 通过中继获取ext_no
-func GetExtNoByTrunkNo(trunkNo string) string {
-    sql := `select a.ext_no from %s gp inner join %s a on gp.agent_id=a.id where phone='%s'`
-    sql = fmt.Sprintf(sql, GatewayPhoneTBName(), AgentTBName(), trunkNo)
+func GetExtNoByTrunkNo(trunkNo string) TrunkAgentUser {
+    // sql := `select a.ext_no, a.bind_phone from %s gp inner join %s a on gp.agent_id=a.id where phone='%s'`
+    sql := `SELECT gp.phone as trunk_no, g.gateway_url as gateway, a.ext_no, a.backend_user_id, a.bind_phone 
+            from %s gp, %s g, %s a 
+            where gp.agent_id = a.id and gp.gateway_id = g.id 
+            and gp.phone='%s'`
+    sql = fmt.Sprintf(sql, GatewayPhoneTBName(), GatewayTBName(), AgentTBName(), trunkNo)
 
-    type Rst struct {
-        ExtNo string
-    }
-    var rst Rst
+    var rst TrunkAgentUser
     o := orm.NewOrm()
     o.Raw(sql).QueryRow(&rst)
 
-    return rst.ExtNo
+    return rst
 }

@@ -175,7 +175,7 @@ func (c *AgentController) SaveV1() {
 			c.jsonResult(enums.JRCodeFailed, "添加失败", m.Id)
 		}
 	} else {
-		if _, err = o.Update(&m, "ExtNo", "ExtPwd", "BackendUserId", "DefaultTrunk"); err == nil {
+		if _, err = o.Update(&m, "ExtNo", "ExtPwd", "BackendUserId", "DefaultTrunk", "BindPhone"); err == nil {
 			c.jsonResult(enums.JRCodeSucc, "编辑成功", m.Id)
 		} else {
 			c.jsonResult(enums.JRCodeFailed, "编辑失败", m.Id)

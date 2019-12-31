@@ -40,6 +40,11 @@
                     <div class="box-body" style="display: none;">
                         <input type="text" name="CallerIdNumber" class="form-control pull-left input-wd-md" placeholder="主叫号码">
                         <input type="text" name="DestinationNumber" class="form-control pull-left input-wd-md" placeholder="被叫号码">
+                        <select name="Direction" class="bs-select" data-width="100px">
+                            <option value="">全部</option>
+                            <option value="outbound">呼出</option>
+                            <option value="inbound">呼入</option>
+                        </select>
                         <select name="BillsecStatus" class="bs-select" data-width="100px">
                             <option value="">全部</option>
                             <option value="0">未接听</option>

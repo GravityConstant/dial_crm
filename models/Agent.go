@@ -33,6 +33,7 @@ type Agent struct {
 	GatewayId                 int
 	Param                     string
 	DefaultTrunk              int
+	BindPhone                 string
 }
 
 // AgentPageList 获取分页数据

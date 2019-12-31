@@ -155,7 +155,11 @@
                     return { classes: 'ellipsis' };
                 },
                 formatter: function(value, row, index) {
-                    return row.CallerIdName + '(' + value + ')'
+                    if (row.Direction == "inbound") {
+                        return value
+                    } else {
+                        return row.RealName + '(' + row.ExtNo + ')'
+                    }
                 }
             }, {
                 field: 'DestinationNumber',
@@ -163,6 +167,13 @@
                 align: 'center',
                 cellStyle: function (value, row, index, field) {
                     return { classes: 'ellipsis' };
+                },
+                formatter: function(value, row, index, field) {
+                    if (row.Direction == "inbound") {
+                        return row.RealName + '(' + row.ExtNo + ')'
+                    } else {
+                        return value
+                    }
                 }
             }, {
                 field: 'Billsec',

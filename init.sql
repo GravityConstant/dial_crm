@@ -75,7 +75,8 @@ CREATE TABLE crm_agent (
     call_way smallint DEFAULT 0, -- 呼叫方式：0.拨座席，再拨客户，1.先拨客户，放音，再拨座席，2.先拨客户，ivr导航，再根据按键接通座席。默认0 
     gateway_id int DEFAULT 0, -- 网关id
     param text DEFAULT '', -- 呼叫方式对应的extension，转接的没值，放音的写入彩铃，ivr导航的填入ivr extension
-    default_trunk int default 0 -- 跟call_gateway里的gateway_type取值一样的，0代表电话线中继，1代表插手机卡中继
+    default_trunk int default 0, -- 跟call_gateway里的gateway_type取值一样的，0代表电话线中继，1代表插手机卡中继
+    bind_phone text default ''
 );
 
 COMMENT ON COLUMN crm_agent.ext_no IS '分机号码';
